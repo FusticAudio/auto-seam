@@ -2,12 +2,12 @@
 
 基于 **DXF 裁片图** 的服装缝制关系自动标注与可视化预览工具集。
 
-本仓库围绕一条完整工作流运行：使用 `auto-annotator`（后端）将工程裁片 DXF 自动解析为「裁片（garment）+ 缝合关系（seam）」两份 JSON，再由 `seam-preview`（前端）加载这两份 JSON 进行可视化预览与人工校对。
+本仓库围绕一条完整工作流运行：`auto-annotator` 是一个独立完整的 Web 应用（含 DXF 上传界面与 FastAPI 自动标注后端），将工程裁片 DXF 自动解析为「裁片（garment）+ 缝合关系（seam）」两份 JSON；`seam-preview` 则是一个独立的轻量前端工具，加载这两份 JSON 进行可视化预览与人工校对。
 
 ```
 auto-seam/
-├── auto-annotator/   # 后端：DXF 自动解析 → 生成 garment / seam JSON
-└── seam-preview/     # 前端：缝合关系预览、人工缝合编辑、JSON 重新保存（纯单页 HTML）
+├── auto-annotator/   # 独立 Web 应用：DXF 上传界面 + FastAPI 自动标注后端 → garment / seam JSON
+└── seam-preview/     # 轻量前端工具：缝合关系预览、人工缝合编辑、JSON 重新保存（纯单页 HTML）
 ```
 
 ---
@@ -16,7 +16,7 @@ auto-seam/
 
 ### auto-annotator —— DXF 自动缝合关系标注
 
-一个基于 **FastAPI** 的本地 Web 服务，接收 `.dxf` 工程文件，自动解析出服装裁片及其间的缝合关系，返回两份标准 JSON（`*.garment.reviewed.json` 与 `*.seam.reviewed.json`），供下游 3D 执行器与预览工具使用。
+一个独立完整的 Web 应用，由 **DXF 上传前端界面** 与基于 **FastAPI** 的 **自动标注后端** 两部分组成。通过网页上传 `.dxf` 工程文件，后端自动解析出服装裁片及其间的缝合关系，返回两份标准 JSON（`*.garment.reviewed.json` 与 `*.seam.reviewed.json`），供下游 3D 执行器与预览工具使用。
 
 - **输入**：`.dxf` 裁片工程图（含裁片名称 `Piece Name`、层信息、几何图元）
 - **输出**：裁片 JSON（面板、实例、裁片说明）+ 缝合关系 JSON（缝合线、类型）
@@ -24,7 +24,7 @@ auto-seam/
 
 ### seam-preview —— 缝合关系预览与人工编辑
 
-一个 **零依赖纯前端** 的单 HTML 页面（`seam-preview/index.html`），加载 `garment` 与 `seam` 两份 JSON，在 SVG 画布上还原裁片与缝合关系。
+一个独立、零依赖的轻量前端工具，以纯单 HTML 页面（`seam-preview/index.html`）加载 `garment` 与 `seam` 两份 JSON，在 SVG 画布上还原裁片与缝合关系。
 
 - **预览**：叠加显示裁片轮廓、裁片名称标签、缝合关系连线，支持缩放、平移、适合画布
 - **人工缝合**：通过框选边沿，人工建立 / 修改缝合关系（source:manual）
