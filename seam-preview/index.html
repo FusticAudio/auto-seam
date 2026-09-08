@@ -1,0 +1,2667 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>缝合关系预览</title>
+    <style>
+      :root {
+        --bg: #f0f2f5;
+        --card: #fff;
+        --text: #1a1a2e;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --blue: #2563eb;
+        --blue-light: #93c5fd;
+        --blue-bg: #eff6ff;
+        --orange: #ea580c;
+        --orange-light: #fdba74;
+        --green: #16a34a;
+        --red: #dc2626;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family:
+          "Microsoft YaHei UI",
+          "PingFang SC",
+          -apple-system,
+          sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .app {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        row-gap: 8px;
+        gap: 12px;
+        padding: 10px 20px;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        z-index: 10;
+        flex-shrink: 0;
+      }
+      .header h1 {
+        font-size: 18px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .header .garment-info {
+        font-size: 13px;
+        color: var(--muted);
+        margin-left: 8px;
+      }
+      .spacer {
+        flex: 1;
+      }
+      /* 顶部栏按钮分组：逻辑分区 + 分隔符，提升视觉层次 */
+      .header-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .header-sep {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+        flex-shrink: 0;
+      }
+      .hg-primary {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .hg-primary:hover {
+        background: var(--blue-bg);
+        border-color: var(--blue);
+      }
+      .header-group .zoom-group {
+        display: inline-flex;
+        gap: 0;
+      }
+      .header-group .zoom-btn {
+        border-radius: 0;
+        width: 32px;
+        padding: 7px 0;
+        text-align: center;
+      }
+      .header-group .zoom-btn:first-child {
+        border-radius: 6px 0 0 6px;
+        border-right: 0;
+      }
+      .header-group .zoom-btn:last-child {
+        border-radius: 0 6px 6px 0;
+      }
+      /* 中等屏：允许头部换行，分组保持内聚 */
+      @media (max-width: 1240px) {
+        .header {
+          flex-wrap: wrap;
+          row-gap: 8px;
+        }
+      }
+      /* 小屏：头部按钮紧凑换行，隐藏分隔符避免拥挤 */
+      @media (max-width: 860px) {
+        .header {
+          gap: 8px;
+          padding: 8px 12px;
+        }
+        .header .garment-info {
+          width: 100%;
+          margin-left: 0;
+        }
+        .header-sep {
+          display: none;
+        }
+        .header-group {
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: var(--card);
+        border-radius: 6px;
+        padding: 7px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        color: var(--text);
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+      }
+      .btn.primary {
+        background: var(--blue);
+        color: #fff;
+        border-color: var(--blue);
+      }
+      .btn.primary:hover {
+        background: #1d4ed8;
+      }
+      .toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        user-select: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--card);
+      }
+      .toggle-group:hover {
+        background: #f9fafb;
+      }
+      .toggle-group input {
+        margin: 0;
+        cursor: pointer;
+      }
+      .toggle-group.active {
+        background: var(--blue-bg);
+        border-color: var(--blue-light);
+      }
+      .file-input {
+        display: none;
+      }
+      .main {
+        flex: 1;
+        position: relative;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr) auto;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+        background: var(--card);
+        overflow: hidden;
+      }
+      .sidebar-section {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        flex: 1;
+        overflow: hidden;
+      }
+      .sidebar-section + .sidebar-section {
+        border-top: 1px solid var(--border);
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 13px;
+        background: #fafbfc;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .section-count {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 4px;
+      }
+      .list-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.1s;
+        border: 0;
+        background: transparent;
+        width: 100%;
+        text-align: left;
+      }
+      .list-item:hover {
+        background: #f3f4f6;
+      }
+      .list-item.active {
+        background: var(--blue-bg);
+        color: var(--blue);
+      }
+      .list-item.highlight {
+        background: #eff6ff;
+      }
+      .swatch {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .swatch.pending_review {
+        background: #f59e0b;
+      }
+      .swatch.auto_approved {
+        background: var(--green);
+      }
+      .swatch.needs_fix {
+        background: var(--red);
+      }
+      .item-info {
+        min-width: 0;
+        flex: 1;
+      }
+      .item-title {
+        font-weight: 600;
+        font-size: 12px;
+      }
+      .item-sub {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .item-meta {
+        font-size: 10px;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      /* 裁片可视性开关 */
+      .vis-switch {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        width: 30px;
+        height: 18px;
+        cursor: pointer;
+      }
+      .vis-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+      }
+      .vis-switch .vis-slider {
+        position: relative;
+        width: 30px;
+        height: 18px;
+        background: #d1d5db;
+        border-radius: 999px;
+        transition: background 0.15s ease;
+      }
+      .vis-switch .vis-slider::before {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        width: 14px;
+        height: 14px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.15s ease;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+      .vis-switch input:checked + .vis-slider {
+        background: var(--green);
+      }
+      .vis-switch input:checked + .vis-slider::before {
+        transform: translateX(12px);
+      }
+      .vis-switch input:focus-visible + .vis-slider {
+        outline: 2px solid var(--blue);
+        outline-offset: 1px;
+      }
+      .stitch-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #f3f4f6;
+        white-space: nowrap;
+      }
+      .item-delete {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        border: none;
+        background: transparent;
+        border-radius: 50%;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        opacity: 0.45;
+        transition: all 0.15s;
+      }
+      .item-delete:hover {
+        background: #fee2e2;
+        color: var(--red);
+        opacity: 1;
+      }
+      .btn.danger {
+        background: var(--red);
+        color: #fff;
+        border-color: var(--red);
+      }
+      .btn.danger:hover {
+        background: #b91c1c;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .btn:disabled:hover {
+        background: var(--card);
+        border-color: var(--border);
+      }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal {
+        background: var(--card);
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        width: 380px;
+        max-width: 90vw;
+        padding: 20px;
+      }
+      .modal h3 {
+        font-size: 15px;
+        margin-bottom: 10px;
+      }
+      .modal p {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 18px;
+        word-break: break-all;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--muted);
+        font-size: 14px;
+        padding: 20px;
+        text-align: center;
+      }
+      .canvas-area {
+        position: relative;
+        background: #e8ecf1;
+        overflow: hidden;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #canvas {
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        display: block;
+        cursor: grab;
+      }
+      #canvas.dragging {
+        cursor: grabbing;
+      }
+      #canvas.grabbable {
+        cursor: grab;
+      }
+
+      /* 画布底部状态栏（固定在画布正下方，含工具切换） */
+      .canvas-footer {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 14px;
+        min-height: 44px;
+        background: var(--card);
+        border-top: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text);
+        z-index: 5;
+      }
+      .canvas-footer .cf-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: none;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .canvas-footer .cf-status .side-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .canvas-footer .cf-status .side-tag.b {
+        background: var(--blue-light);
+      }
+      .canvas-footer .cf-info {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--muted);
+      }
+      .canvas-footer .cf-mode {
+        display: flex;
+        gap: 8px;
+        flex: none;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .canvas-footer .cf-mode .cf-sep {
+        width: 1px;
+        height: 18px;
+        background: var(--border);
+        margin: 0 2px;
+      }
+      .canvas-footer .cf-mode .cf-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+      }
+      .tool-btn {
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 5px 14px;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1;
+        transition: background 0.12s ease, color 0.12s ease,
+          border-color 0.12s ease;
+      }
+      .tool-btn:hover:not(.active) {
+        background: var(--blue-bg);
+      }
+      .tool-btn.active {
+        background: var(--blue);
+        border-color: var(--blue);
+        color: #fff;
+        font-weight: 600;
+      }
+      .panel-fill {
+        fill: #fff;
+        fill-opacity: 0.88;
+        stroke: #374151;
+        stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
+      }
+      .panel-fill.focused {
+        stroke: var(--blue);
+        stroke-width: 3;
+      }
+      .edge-line {
+        fill: none;
+        stroke: #9ca3af;
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+        pointer-events: none;
+      }
+      .edge-line.seam-a {
+        stroke: var(--blue);
+        stroke-width: 3.5;
+      }
+      .edge-line.seam-b {
+        stroke: var(--blue-light);
+        stroke-width: 3.5;
+      }
+      .edge-line.seam-a.strong {
+        stroke: #1d4ed8;
+        stroke-width: 5;
+      }
+      .edge-line.seam-b.strong {
+        stroke: #60a5fa;
+        stroke-width: 5;
+      }
+      .edge-line.manual-sel {
+        stroke: #7c3aed;
+        stroke-width: 5;
+      }
+      .edge-line.manual-sel.side-b {
+        stroke: #c4b5fd;
+      }
+      .manual-endpoint-sel {
+        fill: #7c3aed;
+        stroke: #fff;
+        stroke-width: 2;
+      }
+      .manual-endpoint-sel.side-b {
+        fill: #a78bfa;
+      }
+      .panel-label {
+        font-size: 11px;
+        font-weight: 700;
+        fill: #1f2937;
+        paint-order: stroke;
+        stroke: #fff;
+        stroke-width: 3px;
+        stroke-linejoin: round;
+        text-anchor: middle;
+        pointer-events: none;
+      }
+      .seam-line {
+        fill: none;
+        stroke: var(--blue);
+        stroke-width: 2;
+        stroke-dasharray: 6 4;
+        vector-effect: non-scaling-stroke;
+        pointer-events: none;
+      }
+      .seam-line.dim {
+        stroke: #93c5fd;
+        stroke-width: 1;
+        stroke-dasharray: 4 6;
+      }
+      .seam-endpoint {
+        fill: var(--blue);
+        stroke: #fff;
+        stroke-width: 2;
+        vector-effect: non-scaling-stroke;
+      }
+      .seam-endpoint.b-side {
+        fill: var(--blue-light);
+      }
+      /* ===== 人工缝合相关样式 ===== */
+      .btn.active {
+        background: var(--blue);
+        color: #fff;
+        border-color: var(--blue);
+      }
+      .btn.active:hover {
+        background: #1d4ed8;
+      }
+
+      /* 人工缝合模式指示横幅（顶部左） */
+      .manual-active-banner {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        background: var(--blue);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+        z-index: 18;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .manual-active-banner.show {
+        display: inline-flex;
+      }
+      .manual-active-banner .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #fff;
+        animation: manual-pulse 1.2s infinite;
+      }
+      @keyframes manual-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.75); }
+      }
+
+      /* 框选橡皮筋：动态边界 + 半透明填充 */
+      .rubber-band {
+        position: absolute;
+        border: 1.5px dashed var(--blue);
+        background: rgba(37, 99, 235, 0.1);
+        pointer-events: none;
+        display: none;
+        z-index: 15;
+        border-radius: 2px;
+        animation: rubber-pulse 0.9s ease-in-out infinite;
+      }
+      .rubber-band.show {
+        display: block;
+      }
+      @keyframes rubber-pulse {
+        0%, 100% {
+          border-color: rgba(37, 99, 235, 0.7);
+          box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+        }
+        50% {
+          border-color: rgba(29, 78, 216, 0.95);
+          box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+        }
+      }
+      .manual-badge {
+        background: var(--blue-bg);
+        color: var(--blue);
+      }
+      .stitch-badge.group-badge {
+        background: #ecfdf5;
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.35);
+      }
+
+      /* ===== 已选边列表栏（画布右侧非卡片式区域） ===== */
+      .manual-selected-panel {
+        grid-column: 3;
+        width: 264px;
+        min-width: 0;
+        background: #fafbfc;
+        border-left: 1px solid var(--border);
+        display: none;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+      }
+      .manual-selected-panel.show {
+        display: flex;
+      }
+      .manual-selected-panel .msp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        background: #fafbfc;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .manual-selected-panel .msp-count {
+        font-size: 11px;
+        color: var(--blue);
+        font-weight: 700;
+      }
+      .manual-selected-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 6px 8px;
+      }
+      .selected-edge-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px 4px 26px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--text);
+        cursor: default;
+      }
+      .selected-edge-item:hover {
+        background: var(--blue-bg);
+      }
+      .selected-edge-item .e-dot {
+        flex: none;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--blue-light);
+      }
+      .selected-edge-item .e-id {
+        font-weight: 600;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .selected-edge-item .e-meta {
+        color: var(--muted);
+        font-size: 11px;
+        flex: none;
+      }
+
+      /* 边组容器 */
+      .selected-edge-group {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 6px;
+        overflow: hidden;
+        background: #fff;
+        transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
+      }
+      .selected-edge-group.sel-active {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+      }
+      .selected-edge-group.sel-active .seg-header {
+        background: #eef2ff;
+      }
+      .selected-edge-group .seg-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 8px;
+        background: var(--blue-bg);
+      }
+      .selected-edge-group .seg-side {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        text-align: center;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--blue);
+      }
+      .selected-edge-group .seg-side.b {
+        background: var(--blue-light);
+      }
+      .selected-edge-group .seg-title {
+        font-weight: 600;
+        color: var(--blue);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+      }
+      .selected-edge-group .seg-count {
+        flex: none;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .selected-edge-group .seg-remove {
+        flex: none;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.12s ease, color 0.12s ease, transform 0.06s ease;
+      }
+      .selected-edge-group .seg-remove:hover {
+        background: rgba(220, 38, 38, 0.12);
+        color: var(--red);
+      }
+      .selected-edge-group .seg-remove:active {
+        transform: scale(0.82);
+      }
+      .selected-edge-group .seg-list {
+        padding: 2px 0;
+      }
+      /* 组删除动画：淡出 + 收起，其余组保持不变 */
+      .selected-edge-group.seg-removing {
+        opacity: 0;
+        transform: translateX(24px);
+        max-height: 0;
+        margin-bottom: 0;
+        border-color: transparent;
+        pointer-events: none;
+      }
+      .manual-selected-panel .msp-empty {
+        padding: 16px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      /* 中等屏：适当压缩侧栏与已选边栏宽度，保证画布空间 */
+      @media (max-width: 1100px) {
+        .main {
+          grid-template-columns: 240px minmax(0, 1fr) 232px;
+        }
+        .manual-selected-panel {
+          width: 232px;
+        }
+      }
+      /* 小屏：已选边栏改为浮于画布右侧（非卡片式），避免挤压画布 */
+      @media (max-width: 820px) {
+        .main {
+          grid-template-columns: 220px minmax(0, 1fr);
+        }
+        .manual-selected-panel {
+          grid-column: 2;
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          width: 236px;
+          border-left: 1px solid var(--border);
+          box-shadow: -6px 0 16px rgba(0, 0, 0, 0.08);
+        }
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <h1>缝合关系预览</h1>
+        <span class="garment-info" id="garmentInfo">未加载数据</span>
+        <span class="spacer"></span>
+        <div class="header-group hg-files">
+          <button
+            class="btn"
+            id="batchLoadBtn"
+            title="批量加载 garment + seam JSON"
+          >
+            批量加载
+          </button>
+          <button class="btn" id="loadGarmentBtn">加载 Garment JSON</button>
+          <button class="btn" id="loadSeamBtn">加载 Seam JSON</button>
+          <button
+            class="btn primary"
+            id="saveBtn"
+            title="将修改后的缝合关系保存为 JSON 文件"
+            disabled
+          >
+            保存 Seam JSON
+          </button>
+        </div>
+        <span class="header-sep" aria-hidden="true"></span>
+        <div class="header-group hg-view">
+          <label class="toggle-group active" id="labelToggle">
+            <input type="checkbox" id="showLabels" checked /> 裁片名称
+          </label>
+          <label class="toggle-group active" id="seamToggle">
+            <input type="checkbox" id="showSeams" checked /> 缝合关系线
+          </label>
+          <button class="btn hg-primary" id="manualStitchBtn" title="通过框选人工建立缝合关系">人工缝合</button>
+        </div>
+        <span class="header-sep" aria-hidden="true"></span>
+        <div class="header-group hg-nav">
+          <button class="btn" id="fitBtn">适合画布</button>
+          <div class="zoom-group">
+            <button class="btn zoom-btn" id="zoomInBtn" title="放大">＋</button>
+            <button class="btn zoom-btn" id="zoomOutBtn" title="缩小">−</button>
+          </div>
+        </div>
+        <input type="file" id="garmentFile" accept=".json" class="file-input" />
+        <input type="file" id="seamFile" accept=".json" class="file-input" />
+        <input
+          type="file"
+          id="batchFile"
+          accept=".json"
+          multiple
+          class="file-input"
+        />
+      </header>
+      <main class="main">
+        <aside class="sidebar">
+          <div class="sidebar-section">
+            <div class="section-header">
+              <span>裁片列表</span>
+              <span class="section-count" id="panelCount">0</span>
+            </div>
+            <div class="list" id="panelList">
+              <div class="empty-state">请加载 Garment JSON</div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="section-header">
+              <span>缝合关系</span>
+              <span class="section-count" id="stitchCount">0</span>
+            </div>
+            <div class="list" id="stitchList">
+              <div class="empty-state">请加载 Seam JSON</div>
+            </div>
+          </div>
+        </aside>
+        <section class="canvas-area" id="canvasArea">
+          <svg id="canvas" role="img" aria-label="裁片缝合关系预览画布">
+            <g id="viewport"></g>
+          </svg>
+          <div
+            class="manual-active-banner"
+            id="manualActiveBanner"
+            aria-hidden="true"
+          >
+            <span class="dot"></span>
+            <span>人工缝合模式</span>
+          </div>
+          <div class="rubber-band" id="rubberBand"></div>
+          <div class="canvas-footer" id="canvasFooter">
+            <div class="cf-status">
+              <span class="side-tag" id="manualSideTag">0</span>
+              <span id="manualStatus">就绪</span>
+            </div>
+            <div class="cf-info" id="manualInfo"></div>
+            <div class="cf-mode">
+              <button class="tool-btn active" id="toolPanBtn" type="button">
+                移动画布
+              </button>
+              <button class="tool-btn" id="toolSelectBtn" type="button">
+                选边
+              </button>
+              <span class="cf-sep" aria-hidden="true"></span>
+              <button class="btn cf-btn" id="manualResetBtn" type="button">
+                重置
+              </button>
+              <button
+                class="btn primary cf-btn"
+                id="manualConfirmBtn"
+                type="button"
+                title="打开二次确认弹窗后再建立缝合关系"
+                disabled
+              >
+                确认缝合
+              </button>
+            </div>
+          </div>
+        </section>
+        <div
+          class="manual-selected-panel"
+          id="manualSelectedPanel"
+          aria-label="已选边列表"
+        >
+          <div class="msp-header">
+            <span>已选边</span>
+            <span class="msp-count" id="manualSelectedCount">0</span>
+          </div>
+          <div class="manual-selected-list" id="manualSelectedList"></div>
+        </div>
+      </main>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <!-- 确认弹窗 -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <h3 id="modalTitle">确认操作</h3>
+        <p id="modalMessage"></p>
+        <div class="modal-actions">
+          <button class="btn" id="modalCancelBtn">取消</button>
+          <button class="btn danger" id="modalConfirmBtn">确认删除</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      "use strict";
+
+      // ============ 状态管理 ============
+      let garment = null; // garment JSON 数据
+      let seam = null; // seam JSON 数据
+      let geometry = {}; // panel_id -> 重建的轮廓点数组
+      let panelCentroids = {}; // panel_id -> [cx, cy]
+      let edgeLookup = {}; // edge_id -> {panel, edge, svgElement}
+      let hoveredStitchId = null;
+      let focusedPanelId = null;
+      // 被隐藏（不显示在画布上）的裁片集合
+      let hiddenPanels = new Set();
+      let showLabels = true;
+      let showSeams = true;
+      let garmentFileName = "";
+      let seamFileName = "";
+
+      // SVG 变换状态
+      let transform = { x: 0, y: 0, k: 1 };
+      let dragState = null;
+      let worldBounds = { minX: 0, minY: 0, maxX: 1000, maxY: 800 };
+      let baseScale = 1;
+      let svgW = 800, svgH = 600;
+      const PAD = 50;
+
+      // 人工缝合工具状态
+      // 采用“多组边累积选择 + 一键多对多互缝”模型：
+      // selections 为已选组边链的集合，每条链 {panelId, edgeIds, groupIds,
+      // startPoint, endPoint, length}，一次框选新增/替换一条链，可多条并存。
+      let manualMode = {
+        active: false,
+        box: null, // {x0,y0,x1,y1} 屏幕坐标（相对画布）
+        selections: [], // 已选组边链集合（多选）
+        selectedIdx: -1, // 最近选中/正在编辑的链索引（用于高亮与追加）
+        dragging: false,
+      };
+      let manualAdj = {}; // panel_id -> {vertexMap, edgeData}
+
+      // 多条组边选中态调色板（按选中时间顺序着色，视觉区分不同组边）
+      const MCHAIN_COLORS = [
+        "#7c3aed", // 紫
+        "#2563eb", // 蓝
+        "#0d9488", // 青
+        "#c2410c", // 橙
+        "#be185d", // 玫红
+        "#4d7c0f", // 橄榄绿
+        "#0e7490", // 深青
+        "#9333ea", // 紫红
+      ];
+      // 返回某个已选链的显示颜色（按索引取色）
+      function chainColor(idx) {
+        return MCHAIN_COLORS[idx % MCHAIN_COLORS.length];
+      }
+
+      // DOM 引用
+      const svg = document.getElementById("canvas");
+      const viewport = document.getElementById("viewport");
+      const $ = (s) => document.querySelector(s);
+
+      // ============ 工具函数 ============
+      function esc(v) {
+        return String(v ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+
+      function toast(msg) {
+        const el = $("#toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 2000);
+      }
+
+      // ============ 几何计算 ============
+      function rebuildGeometry() {
+        if (!garment || !garment.panels) return;
+        geometry = {};
+        panelCentroids = {};
+        let allPoints = [];
+
+        for (const panel of garment.panels) {
+          const points = [];
+          for (const edge of panel.edges || []) {
+            const pts = edge.sampled_points || [
+              edge.start_point,
+              edge.end_point,
+            ];
+            for (const p of pts) {
+              points.push([p[0], p[1]]);
+              allPoints.push([p[0], p[1]]);
+            }
+          }
+          geometry[panel.panel_id] = points;
+
+          if (points.length > 0) {
+            const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+            const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+            panelCentroids[panel.panel_id] = [cx, cy];
+          }
+        }
+
+        // 计算世界坐标范围
+        if (allPoints.length > 0) {
+          worldBounds = {
+            minX: Math.min(...allPoints.map((p) => p[0])),
+            minY: Math.min(...allPoints.map((p) => p[1])),
+            maxX: Math.max(...allPoints.map((p) => p[0])),
+            maxY: Math.max(...allPoints.map((p) => p[1])),
+          };
+        }
+      }
+
+      function buildEdgeLookup() {
+        edgeLookup = {};
+        if (!garment || !garment.panels) return;
+        for (const panel of garment.panels) {
+          for (const edge of panel.edges || []) {
+            edgeLookup[edge.edge_id] = { panel, edge, svgEl: null };
+          }
+        }
+      }
+
+      // 更新 SVG 画布尺寸和基础缩放
+      function updateCanvasSize() {
+        const r = svg.getBoundingClientRect();
+        svgW = r.width || svg.parentElement.clientWidth || 800;
+        svgH = r.height || svg.parentElement.clientHeight || 600;
+        const w = worldBounds.maxX - worldBounds.minX || 1;
+        const h = worldBounds.maxY - worldBounds.minY || 1;
+        baseScale = Math.min((svgW - PAD * 2) / w, (svgH - PAD * 2) / h);
+      }
+
+      // 坐标转换：世界坐标 -> 基础 SVG 坐标（未应用 zoom/pan）
+      function toSvg(p) {
+        return [
+          PAD + (p[0] - worldBounds.minX) * baseScale,
+          svgH - PAD - (p[1] - worldBounds.minY) * baseScale,
+        ];
+      }
+
+      function pathD(points, close = false) {
+        if (!points.length) return "";
+        return (
+          points
+            .map((p, i) => {
+              const [x, y] = toSvg(p);
+              return `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
+            })
+            .join(" ") + (close ? " Z" : "")
+        );
+      }
+
+      function midPoint(points) {
+        if (!points.length) return [0, 0];
+        const cx = points.reduce((s, p) => s + p[0], 0) / points.length;
+        const cy = points.reduce((s, p) => s + p[1], 0) / points.length;
+        return [cx, cy];
+      }
+
+      // 计算缝合边组的中心点
+      function edgeGroupCenter(edgeIds) {
+        const allPts = [];
+        for (const id of edgeIds) {
+          const entry = edgeLookup[id];
+          if (!entry) continue;
+          const pts = entry.edge.sampled_points || [
+            entry.edge.start_point,
+            entry.edge.end_point,
+          ];
+          allPts.push(...pts);
+        }
+        return midPoint(allPts);
+      }
+
+      // ============ 人工缝合 - 几何算法 ============
+      // 顶点键：坐标四舍五入到 0.1mm，避免浮点误差产生伪端点
+      function keyPoint(p) {
+        return `${Math.round(p[0] * 10) / 10},${Math.round(p[1] * 10) / 10}`;
+      }
+
+      // 构建每个裁片的边邻接表（共享顶点的边互为邻接）
+      function buildManualAdjacency() {
+        manualAdj = {};
+        if (!garment || !garment.panels) return;
+        for (const panel of garment.panels) {
+          const edgeData = {}; // edgeId -> {edge, startKey, endKey}
+          const seen = new Map(); // key -> Set<edgeId> 记录入射边（邻接）
+          for (const edge of panel.edges || []) {
+            const sKey = keyPoint(edge.start_point);
+            const eKey = keyPoint(edge.end_point);
+            edgeData[edge.edge_id] = { edge, startKey: sKey, endKey: eKey };
+            for (const key of [sKey, eKey]) {
+              if (!seen.has(key)) seen.set(key, new Set());
+              seen.get(key).add(edge.edge_id);
+            }
+          }
+          manualAdj[panel.panel_id] = { edgeData, seen };
+        }
+      }
+
+      // 屏幕坐标 → 世界坐标
+      function worldFromScreen(px, py) {
+        const bx = (px - transform.x) / transform.k;
+        const by = (py - transform.y) / transform.k;
+        return [
+          (bx - PAD) / baseScale + worldBounds.minX,
+          worldBounds.minY + (svgH - PAD - by) / baseScale,
+        ];
+      }
+
+      // Liang-Barsky 线段-矩形相交测试
+      function segRectHit(x1, y1, x2, y2, rx0, ry0, rx1, ry1) {
+        let t0 = 0, t1 = 1;
+        const dx = x2 - x1, dy = y2 - y1;
+        const p = [-dx, dx, -dy, dy];
+        const q = [x1 - rx0, rx1 - x1, y1 - ry0, ry1 - y1];
+        for (let i = 0; i < 4; i++) {
+          if (p[i] === 0) {
+            if (q[i] < 0) return false;
+          } else {
+            const r = q[i] / p[i];
+            if (p[i] < 0) {
+              if (r > t1) return false;
+              if (r > t0) t0 = r;
+            } else {
+              if (r < t0) return false;
+              if (r < t1) t1 = r;
+            }
+          }
+        }
+        return true;
+      }
+
+      // 从屏幕框选矩形提取命中边（含像素容差）
+      function selectionFromBox(x0, y0, x1, y1) {
+        const p0 = worldFromScreen(x0, y0);
+        const p1 = worldFromScreen(x1, y1);
+        const tol = 8 / (baseScale * transform.k); // 约 8 像素的世界容差
+        const rx0 = Math.min(p0[0], p1[0]) - tol;
+        const rx1 = Math.max(p0[0], p1[0]) + tol;
+        const ry0 = Math.min(p0[1], p1[1]) - tol;
+        const ry1 = Math.max(p0[1], p1[1]) + tol;
+
+        const hits = []; // {edgeId, panelId}
+        for (const panel of garment.panels) {
+          // 不可视裁片：边缘不得被框选检测到/选中
+          if (hiddenPanels.has(panel.panel_id)) continue;
+          for (const edge of panel.edges || []) {
+            const pts = edge.sampled_points || [
+              edge.start_point,
+              edge.end_point,
+            ];
+            // 边包围盒快速剔除
+            if (pts.length === 1) {
+              const [px, py] = pts[0];
+              if (
+                px >= rx0 && px <= rx1 && py >= ry0 && py <= ry1
+              ) {
+                hits.push({ edgeId: edge.edge_id, panelId: panel.panel_id });
+              }
+              continue;
+            }
+            let eb0 = Infinity, eb1 = -Infinity, eb2 = Infinity, eb3 = -Infinity;
+            for (const [px, py] of pts) {
+              if (px < eb0) eb0 = px;
+              if (px > eb1) eb1 = px;
+              if (py < eb2) eb2 = py;
+              if (py > eb3) eb3 = py;
+            }
+            if (eb1 < rx0 || eb0 > rx1 || eb3 < ry0 || eb2 > ry1) continue;
+            for (let i = 0; i < pts.length - 1; i++) {
+              if (
+                segRectHit(
+                  pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1],
+                  rx0, ry0, rx1, ry1,
+                )
+              ) {
+                hits.push({ edgeId: edge.edge_id, panelId: panel.panel_id });
+                break;
+              }
+            }
+          }
+        }
+        return hits;
+      }
+
+      // 判断两邻接边在共享顶点处是否构成大转角（>45°视为拐角/停界）
+      // 由 cornerDegree() 计算，见下。
+
+      // 沿邻接表双向扩展，得到有序连续边链
+      function chainExpand(hits) {
+        // 1. 按裁片聚合，取命中边最多的裁片作为归属
+        const byPanel = {};
+        for (const h of hits) {
+          (byPanel[h.panelId] = byPanel[h.panelId] || new Set()).add(h.edgeId);
+        }
+        let panelId = null;
+        let best = 0;
+        for (const pid in byPanel) {
+          if (byPanel[pid].size > best) {
+            best = byPanel[pid].size;
+            panelId = pid;
+          }
+        }
+        if (!panelId) return null;
+        const adj = manualAdj[panelId];
+        const visited = new Set(byPanel[panelId]);
+        // 2. BFS 智能扩选：仅当当前链端点只有一个未选邻居时延伸；
+        //    遇到分叉（>1 邻居）、大转角、或链终止（0 邻居）即停界
+        const CORNER_DEG = 45;
+        let changed = true;
+        while (changed) {
+          changed = false;
+          outer: for (const eid of [...visited]) {
+            const ed = adj.edgeData[eid];
+            for (const key of [ed.startKey, ed.endKey]) {
+              const nbrs = adj.seen.get(key) || new Set();
+              const unvisited = [...nbrs].filter((n) => !visited.has(n));
+              if (unvisited.length === 0) continue;
+              if (unvisited.length > 1) continue; // 分叉 → 停界，不跨过
+              const one = unvisited[0];
+              // 转角判定
+              if (
+                cornerDegree(
+                  ed.edge, adj.edgeData[one].edge, key,
+                ) > CORNER_DEG
+              ) {
+                continue;
+              }
+              visited.add(one);
+              changed = true;
+              break outer;
+            }
+          }
+        }
+        // 3. 沿共享顶点把选中边排成有序链
+        const chain = [];
+        const edgeData = adj.edgeData;
+        // 对外连接（只考虑 visited 内的边）
+        const conn = new Map();
+        for (const eid of visited) {
+          const ed = edgeData[eid];
+          for (const key of [ed.startKey, ed.endKey]) {
+            if (!conn.has(key)) conn.set(key, new Set());
+            conn.get(key).add(eid);
+          }
+        }
+        // 找一条"端"边（某端点入射边数==1 的边）作为链头
+        let startEdge = null;
+        let startKey = null;
+        for (const eid of visited) {
+          const ed = edgeData[eid];
+          for (const key of [ed.startKey, ed.endKey]) {
+            if (conn.get(key).size === 1) {
+              startEdge = eid;
+              startKey = key;
+              break;
+            }
+          }
+          if (startEdge) break;
+        }
+        if (!startEdge) {
+          // 闭合环：任选一条边为起点
+          startEdge = [...visited][0];
+          startKey = edgeData[startEdge].startKey;
+        }
+        let cur = startEdge;
+        let curEndKey = edgeData[startEdge].startKey === startKey
+          ? edgeData[startEdge].endKey
+          : edgeData[startEdge].startKey;
+        let guard = 0;
+        while (cur && guard++ < visited.size) {
+          chain.push(cur);
+          const nbrs = conn.get(curEndKey) || new Set();
+          const next = [...nbrs].find((n) => n !== cur && !chain.includes(n));
+          if (!next) break;
+          cur = next;
+          curEndKey =
+            edgeData[next].startKey === curEndKey
+              ? edgeData[next].endKey
+              : edgeData[next].startKey;
+        }
+        // 4. 组装 selection
+        const ordered = chain;
+        // 链起点：startEdge 处于 startKey（度为1的端边）一侧的物理端点
+        const startEd = edgeData[ordered[0]].edge;
+        const startPoint =
+          edgeData[ordered[0]].startKey === startKey
+            ? startEd.start_point
+            : startEd.end_point;
+        // 链终点：循环中断处 curEndKey 即最后一条边的自由出口端
+        const lastEdId = ordered[ordered.length - 1];
+        const lastEd = edgeData[lastEdId].edge;
+        const endPoint =
+          edgeData[lastEdId].startKey === curEndKey
+            ? lastEd.start_point
+            : lastEd.end_point;
+        const groupIds = [];
+        const seenGroups = new Set();
+        let length = 0;
+        for (const eid of ordered) {
+          const ge = edgeData[eid].edge;
+          length += ge.length || 0;
+          const gid = ge.group_id;
+          if (gid && !seenGroups.has(gid)) {
+            seenGroups.add(gid);
+            groupIds.push(gid);
+          }
+        }
+        return {
+          panelId,
+          edgeIds: ordered,
+          groupIds,
+          startPoint,
+          endPoint,
+          length,
+        };
+      }
+
+      // 计算两邻接边在共享顶点处的偏转角：沿路径前进方向，两段边的方向夹角。
+// 直线延展时夹角为 0°，出现拐弯则增大；据此判断是否构成"拐角"停界。
+      function cornerDegree(e1, e2, sharedKey) {
+        const otherOf = (e, key) =>
+          keyPoint(e.start_point) === key ? e.end_point : e.start_point;
+        const a = otherOf(e1, sharedKey); // e1 远离 sharedKey 的一端
+        const b = otherOf(e2, sharedKey); // e2 远离 sharedKey 的一端
+        const sh = sharedKey.split(",").map(Number);
+        let ax = sh[0] - a[0], ay = sh[1] - a[1]; // 进入共享点方向
+        let bx = b[0] - sh[0], by = b[1] - sh[1]; // 离开共享点方向
+        const la = Math.hypot(ax, ay) || 1;
+        const lb = Math.hypot(bx, by) || 1;
+        let cos = (ax * bx + ay * by) / (la * lb);
+        cos = Math.max(-1, Math.min(1, cos));
+        const angle = (Math.acos(cos) * 180) / Math.PI;
+        return angle; // 直线延展为 0°
+      }
+
+      // ============ SVG 渲染 ============
+      function updateTransform() {
+        viewport.setAttribute(
+          "transform",
+          `translate(${transform.x},${transform.y}) scale(${transform.k})`,
+        );
+      }
+
+      function fitToCanvas() {
+        updateCanvasSize();
+        transform.k = 0.92;
+        transform.x = (svgW / 2) * (1 - transform.k);
+        transform.y = (svgH / 2) * (1 - transform.k);
+        updateTransform();
+      }
+
+      function renderCanvas() {
+        viewport.innerHTML = "";
+        if (!garment || !garment.panels) return;
+
+        const ns = "http://www.w3.org/2000/svg";
+        const stitch = hoveredStitchId
+          ? (seam?.stitches || []).find((s) => s.stitch_id === hoveredStitchId)
+          : null;
+        // 多对多：edge_sets 保存每条参与组边；无则回退兼容 a_edges/b_edges
+        const sideGroups = stitch
+          ? stitchSideEdgeGroups(stitch)
+          : [];
+        const aEdgeSet = new Set(sideGroups[0] || []);
+        const bEdgeSet = new Set(sideGroups.slice(1).flat());
+
+        // 绘制裁片
+        for (const panel of garment.panels) {
+          // 被隐藏的裁片不绘制（填充、边线、标签一并跳过）
+          if (hiddenPanels.has(panel.panel_id)) continue;
+          const points = geometry[panel.panel_id] || [];
+          if (!points.length) continue;
+
+          // 裁片填充
+          const shape = document.createElementNS(ns, "path");
+          shape.setAttribute("d", pathD(points, true));
+          shape.setAttribute(
+            "class",
+            "panel-fill" +
+              (focusedPanelId === panel.panel_id ? " focused" : ""),
+          );
+          shape.dataset.panel = panel.panel_id;
+          shape.style.cursor = "pointer";
+          shape.onclick = (e) => {
+            e.stopPropagation();
+            focusPanel(panel.panel_id);
+          };
+          viewport.appendChild(shape);
+
+          // 边线
+          for (const edge of panel.edges || []) {
+            const pts = edge.sampled_points || [
+              edge.start_point,
+              edge.end_point,
+            ];
+            const line = document.createElementNS(ns, "path");
+            line.setAttribute("d", pathD(pts));
+            let cls = "edge-line";
+            if (aEdgeSet.has(edge.edge_id)) cls += " seam-a strong";
+            else if (bEdgeSet.has(edge.edge_id)) cls += " seam-b strong";
+            line.setAttribute("class", cls);
+            line.dataset.edgeId = edge.edge_id;
+            viewport.appendChild(line);
+            // 更新 lookup
+            if (edgeLookup[edge.edge_id]) {
+              edgeLookup[edge.edge_id].svgEl = line;
+            }
+          }
+
+          // 裁片名称标签
+          if (showLabels && panelCentroids[panel.panel_id]) {
+            const [cx, cy] = toSvg(panelCentroids[panel.panel_id]);
+            const label = document.createElementNS(ns, "text");
+            label.setAttribute("x", cx);
+            label.setAttribute("y", cy);
+            label.setAttribute("class", "panel-label");
+            const role =
+              panel.role && panel.role !== "unknown_panel" ? panel.role : "";
+            label.textContent = role
+              ? `${panel.panel_id}\n${role}`
+              : panel.panel_id;
+            // SVG text doesn't support \n, use tspan
+            label.textContent = "";
+            const tspan1 = document.createElementNS(ns, "tspan");
+            tspan1.setAttribute("x", cx);
+            tspan1.setAttribute("dy", "-0.3em");
+            tspan1.textContent = panel.panel_id;
+            label.appendChild(tspan1);
+            if (role) {
+              const tspan2 = document.createElementNS(ns, "tspan");
+              tspan2.setAttribute("x", cx);
+              tspan2.setAttribute("dy", "1.2em");
+              tspan2.textContent = role;
+              tspan2.style.fontSize = "10px";
+              tspan2.style.fontWeight = "400";
+              label.appendChild(tspan2);
+            }
+            viewport.appendChild(label);
+          }
+        }
+
+        // 绘制缝合关系线
+        if (showSeams && seam && seam.stitches) {
+          for (const s of seam.stitches) {
+            const aIds = s.a_edges || [];
+            const bIds = s.b_edges || [];
+            if (!aIds.length || !bIds.length) continue;
+
+            const aCenter = edgeGroupCenter(aIds);
+            const bCenter = edgeGroupCenter(bIds);
+            const [ax, ay] = toSvg(aCenter);
+            const [bx, by] = toSvg(bCenter);
+
+            const isHovered = s.stitch_id === hoveredStitchId;
+            const line = document.createElementNS(ns, "line");
+            line.setAttribute("x1", ax);
+            line.setAttribute("y1", ay);
+            line.setAttribute("x2", bx);
+            line.setAttribute("y2", by);
+            line.setAttribute(
+              "class",
+              isHovered ? "seam-line" : "seam-line dim",
+            );
+
+            // 端点圆点
+            if (isHovered) {
+              const dotA = document.createElementNS(ns, "circle");
+              dotA.setAttribute("cx", ax);
+              dotA.setAttribute("cy", ay);
+              dotA.setAttribute("r", "4");
+              dotA.setAttribute("class", "seam-endpoint");
+              viewport.appendChild(dotA);
+
+              const dotB = document.createElementNS(ns, "circle");
+              dotB.setAttribute("cx", bx);
+              dotB.setAttribute("cy", by);
+              dotB.setAttribute("r", "4");
+              dotB.setAttribute("class", "seam-endpoint");
+              viewport.appendChild(dotB);
+            }
+
+            viewport.appendChild(line);
+          }
+        }
+
+        // 人工缝合选中态高亮
+        renderManualSelection();
+      }
+
+      // 绘制人工缝合的选中边链（多条，各自着色）与端点标记
+      function renderManualSelection() {
+        const ns = "http://www.w3.org/2000/svg";
+        manualMode.selections.forEach((sel, idx) => {
+          const color = chainColor(idx);
+          for (const eid of sel.edgeIds) {
+            const entry = edgeLookup[eid];
+            if (!entry) continue;
+            const pts = entry.edge.sampled_points || [
+              entry.edge.start_point,
+              entry.edge.end_point,
+            ];
+            const path = document.createElementNS(ns, "path");
+            path.setAttribute("d", pathD(pts));
+            path.setAttribute("class", "edge-line manual-sel");
+            path.setAttribute("stroke", color);
+            path.dataset.edgeId = eid;
+            viewport.appendChild(path);
+          }
+          // 端点标记（两端各一，使用组边颜色）
+          for (const p of [sel.startPoint, sel.endPoint]) {
+            const [cx, cy] = toSvg(p);
+            const dot = document.createElementNS(ns, "circle");
+            dot.setAttribute("cx", cx);
+            dot.setAttribute("cy", cy);
+            dot.setAttribute("r", idx === manualMode.selectedIdx ? "5" : "4");
+            dot.setAttribute("class", "manual-endpoint-sel");
+            dot.setAttribute("fill", color);
+            viewport.appendChild(dot);
+          }
+        });
+      }
+
+      // ============ 交互 ============
+      function focusPanel(panelId) {
+        if (focusedPanelId === panelId) {
+          focusedPanelId = null;
+        } else {
+          focusedPanelId = panelId;
+        }
+        renderAll();
+        // 滚动面板列表
+        const item = document.querySelector(
+          `[data-panel="${CSS.escape(panelId)}"]`,
+        );
+        if (item) item.scrollIntoView({ block: "nearest" });
+      }
+
+      function highlightStitch(stitchId) {
+        hoveredStitchId = stitchId;
+        // 仅重绘画布强调该缝合线，并就地切换列表高亮，
+        // 避免重建列表 DOM（不重建即可防止 list-item 闪烁，也不会替换
+        // 悬浮/点击目标的节点，保证删除按钮点击与弹窗正常触发）
+        renderCanvas();
+        document.querySelectorAll("[data-stitch]").forEach((el) => {
+          el.classList.toggle("highlight", el.dataset.stitch === stitchId);
+        });
+      }
+
+      function clearStitchHighlight() {
+        hoveredStitchId = null;
+        renderCanvas();
+        document.querySelectorAll("[data-stitch]").forEach((el) => {
+          el.classList.remove("highlight");
+        });
+      }
+
+      // ============ 列表渲染 ============
+      function renderPanelList() {
+        if (!garment || !garment.panels) {
+          $("#panelList").innerHTML =
+            '<div class="empty-state">请加载 Garment JSON</div>';
+          $("#panelCount").textContent = "0";
+          return;
+        }
+        $("#panelCount").textContent = garment.panels.length;
+        $("#panelList").innerHTML = garment.panels
+          .map((p) => {
+            const role = p.role || "unknown";
+            const area = p.area ? Number(p.area).toFixed(0) : "?";
+            const vis = !hiddenPanels.has(p.panel_id);
+            return `<div class="list-item${focusedPanelId === p.panel_id ? " active" : ""}" data-panel="${esc(p.panel_id)}">
+      <span class="swatch ${esc(p.review_status || "pending_review")}"></span>
+      <span class="item-info">
+        <span class="item-title">${esc(p.panel_id)}</span>
+        <span class="item-sub">${esc(role)} · ${area} mm²</span>
+      </span>
+      <span class="item-meta">${p.edges?.length || 0} 边</span>
+      <label class="vis-switch" title="${vis ? "隐藏裁片" : "显示裁片"}">
+        <input type="checkbox" class="vis-chk" data-vis-panel="${esc(p.panel_id)}" ${vis ? "checked" : ""} />
+        <span class="vis-slider"></span>
+      </label>
+    </div>`;
+          })
+          .join("");
+
+        document.querySelectorAll("[data-panel]").forEach((el) => {
+          el.onclick = (e) => {
+            if (e.target.closest(".vis-switch")) return; // 开关点击不聚焦
+            focusPanel(el.dataset.panel);
+          };
+        });
+        // 裁片可视性开关：单独控制该裁片显示/隐藏，不影响其他裁片。
+        // 使用 change 事件，让浏览器原生切换复选框状态，保证视觉与状态始终同步
+        document.querySelectorAll(".vis-chk").forEach((chk) => {
+          chk.addEventListener("click", (e) => e.stopPropagation());
+          chk.addEventListener("change", (e) => {
+            e.stopPropagation();
+            const pid = chk.dataset.visPanel;
+            if (chk.checked) {
+              hiddenPanels.delete(pid);
+            } else {
+              hiddenPanels.add(pid);
+            }
+            renderCanvas();
+          });
+        });
+      }
+
+      function renderStitchList() {
+        if (!seam || !seam.stitches || !seam.stitches.length) {
+          $("#stitchList").innerHTML =
+            '<div class="empty-state">请加载 Seam JSON</div>';
+          $("#stitchCount").textContent = seam?.stitches?.length || 0;
+          return;
+        }
+        $("#stitchCount").textContent = seam.stitches.length;
+        $("#stitchList").innerHTML = seam.stitches
+          .map((s) => {
+            const type = s.type || "seam";
+            const groups = s.edge_sets ? s.edge_sets.length : 0;
+            const aCount = (s.a_edges || []).length;
+            const bCount = (s.b_edges || []).length;
+            const isGroup = groups > 2;
+            const badge =
+              (s.source === "manual"
+                ? '<span class="stitch-badge manual-badge">人工</span>'
+                : "") +
+              (isGroup
+                ? '<span class="stitch-badge group-badge">多对多</span>'
+                : "");
+            const meta = isGroup
+              ? `${esc(type)} · ${groups} 条组边互缝 (共${aCount + bCount}边)`
+              : `${esc(type)} · A侧${aCount}边 ↔ B侧${bCount}边`;
+            return `<div class="list-item${hoveredStitchId === s.stitch_id ? " highlight" : ""}" data-stitch="${esc(s.stitch_id)}">
+      <span class="item-info">
+        <span class="item-title">${esc(s.stitch_id)} ${badge}</span>
+        <span class="item-sub">${meta}</span>
+      </span>
+      <button type="button" class="item-delete" data-delete="${esc(s.stitch_id)}" title="删除此缝合关系">×</button>
+    </div>`;
+          })
+          .join("");
+
+        document.querySelectorAll("[data-stitch]").forEach((el) => {
+          el.onmouseenter = () => highlightStitch(el.dataset.stitch);
+          el.onmouseleave = () => clearStitchHighlight();
+        });
+        // 容器级鼠标离开：光标彻底移出列表区域时取消所有高亮。
+        // 不能只依赖单个 item 的 mouseleave——highlightStitch 会通过
+        // renderAll() 重建列表 DOM，被替换的旧 item 无法触发 mouseleave，
+        // 导致离开后高亮残留。容器本身不随重绘被替换，适合兜底清空。
+        const stitchListEl = document.getElementById("stitchList");
+        stitchListEl.onmouseleave = () => clearStitchHighlight();
+      }
+
+      function renderTitle() {
+        const parts = [];
+        if (garmentFileName) parts.push(garmentFileName);
+        if (garment?.garment_id) parts.push(garment.garment_id);
+        if (garment?.garment_type) parts.push(garment.garment_type);
+        if (garment?.panels) parts.push(`${garment.panels.length} 裁片`);
+        if (seam?.stitches) parts.push(`${seam.stitches.length} 缝合关系`);
+        $("#garmentInfo").textContent = parts.join(" · ") || "未加载数据";
+      }
+
+      function renderAll() {
+        renderTitle();
+        renderPanelList();
+        renderStitchList();
+        renderCanvas();
+        updateSaveBtn();
+      }
+
+      // ============ 删除 / 保存 ============
+      function updateSaveBtn() {
+        const hasSeam = !!(seam && Array.isArray(seam.stitches));
+        $("#saveBtn").disabled = !hasSeam;
+      }
+
+      const modalOverlay = $("#modalOverlay");
+      const modalConfirmBtn = $("#modalConfirmBtn");
+      let modalOnConfirm = null;
+
+      function openConfirmModal(title, message, onConfirm, opts) {
+        opts = opts || {};
+        $("#modalTitle").textContent = title;
+        $("#modalMessage").textContent = message;
+        modalConfirmBtn.textContent = opts.confirmText || "确认删除";
+        modalConfirmBtn.classList.remove("danger", "primary");
+        modalConfirmBtn.classList.add(opts.confirmClass || "danger");
+        modalOnConfirm = onConfirm;
+        modalOverlay.classList.add("show");
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("show");
+        modalOnConfirm = null;
+        // 还原确认按钮默认样式
+        modalConfirmBtn.textContent = "确认删除";
+        modalConfirmBtn.classList.remove("primary");
+        modalConfirmBtn.classList.add("danger");
+      }
+
+      function deleteStitch(stitchId) {
+        const s = (seam?.stitches || []).find((x) => x.stitch_id === stitchId);
+        if (!s) {
+          toast(`未找到缝合关系 ${stitchId}，请先加载对应的 Seam JSON`);
+          return;
+        }
+        openConfirmModal(
+          "删除缝合关系",
+          `确定要删除 ${stitchId} 吗？（${s.relation || s.type || "seam"}）删除后需保存 JSON 才能持久化，此操作不可撤销。`,
+          () => {
+            const idx = seam.stitches.findIndex(
+              (x) => x.stitch_id === stitchId,
+            );
+            if (idx >= 0) {
+              seam.stitches.splice(idx, 1);
+              if (hoveredStitchId === stitchId) hoveredStitchId = null;
+              renderAll();
+              toast(`已删除 ${stitchId}`);
+            }
+          },
+        );
+      }
+
+      function saveSeamJson() {
+        if (!seam) {
+          toast("未加载 Seam 数据");
+          return;
+        }
+        let name = seamFileName;
+        if (!name) {
+          const base = (garmentFileName || "").replace(
+            /\.garment\..*\.json$/,
+            "",
+          );
+          name = base ? `${base}.seam.reviewed.json` : "seam.reviewed.json";
+        }
+        const blob = new Blob([JSON.stringify(seam, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+        toast(
+          `已保存: ${name}（${seam.stitches.length} 条缝合关系）`,
+        );
+      }
+
+      // ============ 人工缝合 - 交互控制 ============
+      const manualStitchBtn = $("#manualStitchBtn");
+      const rubberBand = $("#rubberBand");
+      const manualStatusEl = $("#manualStatus");
+      const manualSideTag = $("#manualSideTag");
+      const manualInfoEl = $("#manualInfo");
+      // 画布工具：pan = 移动画布，select = 选边
+      let currentTool = "pan";
+      const toolPanBtn = $("#toolPanBtn");
+      const toolSelectBtn = $("#toolSelectBtn");
+
+      // 切换鼠标工具并同步按钮选中态与光标
+      function setTool(tool) {
+        currentTool = tool;
+        toolPanBtn.classList.toggle("active", tool === "pan");
+        toolSelectBtn.classList.toggle("active", tool === "select");
+        updateCanvasCursor();
+      }
+
+      // 依据当前工具 + 人工模式设置画布光标
+      function updateCanvasCursor() {
+        const panning = currentTool === "pan";
+        svg.classList.toggle("grabbable", panning);
+        if (panning) {
+          svg.style.cursor = "";
+        } else {
+          svg.style.cursor = manualMode.active ? "crosshair" : "";
+        }
+      }
+      const manualActiveBanner = $("#manualActiveBanner");
+      let manualAreaRect = null;
+
+      // 人工缝合模式状态指示
+      function setManualModeIndicator(show) {
+        if (show) {
+          manualActiveBanner.classList.add("show");
+          manualStitchBtn.classList.add("active");
+        } else {
+          manualActiveBanner.classList.remove("show");
+          manualStitchBtn.classList.remove("active");
+          manualStatusEl.textContent = "就绪";
+          manualSideTag.textContent = "0";
+          // 确认缝合已常驻底部状态栏，退出人工模式时需复位禁用
+          $("#manualConfirmBtn").disabled = true;
+        }
+        updateCanvasCursor(); // 光标由当前工具决定
+      }
+
+      function manualArea() {
+        return document.getElementById("canvasArea").getBoundingClientRect();
+      }
+
+      function manualExit() {
+        // 退出人工缝合工具，保留已建关系（仅撤掉工具态与选择）
+        manualMode.active = false;
+        manualMode.box = null;
+        manualMode.selections = [];
+        manualMode.selectedIdx = -1;
+        manualMode.dragging = false;
+        rubberBand.classList.remove("show");
+        setManualModeIndicator(false);
+        renderCanvas();
+        refreshManualSelectionPanel(); // 退出时隐藏已选边列表
+      }
+
+      function manualClearSelection() {
+        // 重置：清除当前所有已选中的组边，回到“零选择”状态，工具保持激活
+        manualMode.box = null;
+        manualMode.selections = [];
+        manualMode.selectedIdx = -1;
+        manualMode.dragging = false;
+        rubberBand.classList.remove("show");
+        renderCanvas();
+        updateManualBar();
+      }
+
+      function manualCancel() {
+        // 撤销最近一次添加的组边（Esc 用）；无选择时退出工具
+        if (manualMode.selections.length) {
+          manualMode.selections.pop();
+          manualMode.selectedIdx = -1;
+        }
+        updateManualBar();
+        renderCanvas();
+      }
+
+      // 移除指定索引的已选组边
+      function removeSelectedChain(idx) {
+        if (idx < 0 || idx >= manualMode.selections.length) return;
+        manualMode.selections.splice(idx, 1);
+        if (manualMode.selectedIdx === idx) manualMode.selectedIdx = -1;
+        else if (manualMode.selectedIdx > idx) manualMode.selectedIdx--;
+        updateManualBar();
+        renderCanvas();
+      }
+
+      function updateManualBar() {
+        if (!manualMode.active) {
+          manualActiveBanner.classList.remove("show");
+          return;
+        }
+        manualActiveBanner.classList.add("show");
+        const n = manualMode.selections.length;
+        const confirmBtn = $("#manualConfirmBtn");
+        manualSideTag.textContent = String(n);
+        manualSideTag.classList.toggle("b", false);
+        if (n === 0) {
+          manualStatusEl.textContent =
+            "请框选组边（可多次框选累积多条，点击/悬停栏可移除）";
+          confirmBtn.disabled = true;
+          manualInfoEl.textContent = "";
+        } else if (n === 1) {
+          manualStatusEl.textContent =
+            "已选 1 条组边，可继续框选更多，或多选 2 条以上后确认互缝";
+          confirmBtn.disabled = true;
+          const s = manualMode.selections[0];
+          manualInfoEl.textContent = `#1 ${s.panelId} · ${s.edgeIds.length} 边 · ${s.length.toFixed(0)}mm`;
+        } else {
+          manualStatusEl.textContent =
+            `已选 ${n} 条组边，点击“确认缝合”建立多对多互缝关系`;
+          confirmBtn.disabled = false;
+          const parts = manualMode.selections
+            .map((s, i) => `#${i + 1} ${s.panelId}·${s.length.toFixed(0)}mm`)
+            .join(" ；");
+          manualInfoEl.textContent = parts;
+        }
+        // 已选边列表与选择状态实时同步
+        refreshManualSelectionPanel();
+      }
+
+      function showRubberBand() {
+        rubberBand.classList.add("show");
+      }
+
+      // 已选边列表栏：从 manualMode.selections 实时展示所有已选组边
+      const manualSelectedPanel = $("#manualSelectedPanel");
+      const manualSelectedList = $("#manualSelectedList");
+      const manualSelectedCount = $("#manualSelectedCount");
+      function refreshManualSelectionPanel() {
+        if (!manualMode.active) {
+          manualSelectedPanel.classList.remove("show");
+          manualSelectedList.innerHTML = "";
+          manualSelectedCount.textContent = "0";
+          return;
+        }
+        const chains = manualMode.selections;
+        // 统计所有已选小边数量
+        const totalEdges = chains.reduce((s, c) => s + c.edgeIds.length, 0);
+        manualSelectedCount.textContent = String(totalEdges);
+        if (!chains.length) {
+          manualSelectedPanel.classList.add("show");
+          manualSelectedList.innerHTML =
+            '<div class="msp-empty">框选组边以累积选择（可多次框选）</div>';
+          return;
+        }
+        manualSelectedPanel.classList.add("show");
+        manualSelectedList.innerHTML = chains
+          .map(
+            (c, i) => `<div class="selected-edge-group${i === manualMode.selectedIdx ? " sel-active" : ""}" data-idx="${i}">
+        <div class="seg-header">
+          <span class="seg-side" style="background:${chainColor(i)}">${i + 1}</span>
+          <span class="seg-title" title="${esc(c.panelId)}">${esc(c.panelId)}</span>
+          <span class="seg-count">${c.edgeIds.length} 边 / ${c.length.toFixed(0)}mm</span>
+          <button type="button" class="seg-remove" data-del-idx="${i}" title="移除该组边">×</button>
+        </div>
+        <div class="seg-list">
+          ${c.edgeIds
+            .map(
+              (eid) => `<div class="selected-edge-item" data-edge="${esc(eid)}">
+            <span class="e-dot" style="background:${chainColor(i)}"></span>
+            <span class="e-id" title="${esc(eid)}">${esc(eid)}</span>
+          </div>`,
+            )
+            .join("")}
+        </div>
+      </div>`,
+          )
+          .join("");
+      }
+
+      function refreshRubberBand() {
+        const b = manualMode.box;
+        if (!b) return;
+        const x = Math.min(b.x0, b.x1);
+        const y = Math.min(b.y0, b.y1);
+        rubberBand.style.left = x + "px";
+        rubberBand.style.top = y + "px";
+        rubberBand.style.width = Math.abs(b.x1 - b.x0) + "px";
+        rubberBand.style.height = Math.abs(b.y1 - b.y0) + "px";
+      }
+      function hideRubberBand() {
+        rubberBand.classList.remove("show");
+      }
+
+      // 一次框选 → 命中 → 扩选 → 追加为一条新组边到选择集（多选累积）
+      function applyBoxSelection(b) {
+        const hits = selectionFromBox(b.x0, b.y0, b.x1, b.y1);
+        if (!hits.length) {
+          toast("未选中任何边，请重新框选");
+          return;
+        }
+        const sel = chainExpand(hits);
+        if (!sel) {
+          toast("未能形成有效边链");
+          return;
+        }
+        // 去重：若新链与已选组边共享任意小边，则替换而非追加（避免重复计数）
+        const dupIdx = manualMode.selections.findIndex((c) =>
+          c.edgeIds.some((eid) => sel.edgeIds.includes(eid)),
+        );
+        if (dupIdx >= 0) {
+          manualMode.selections[dupIdx] = sel;
+          toast(`已更新组边 #${dupIdx + 1}`);
+        } else {
+          // 冲突提示（不阻断）：所选边可能已被现有缝合关系占用
+          const conflicts = occupiedByStitch(sel.edgeIds);
+          if (conflicts.length) {
+            const names = conflicts
+              .map((s) => s.stitch_id || s.type || "stitch")
+              .join("、");
+            toast(`提示：所选边已参与 ${names}，可继续但请注意重复`);
+          }
+          manualMode.selections.push(sel);
+          manualMode.selectedIdx = manualMode.selections.length - 1;
+        }
+        updateManualBar();
+        renderCanvas();
+      }
+
+      // 多对多：取缝合关系中各参与组边的边数组（edge_sets，回退兼容 a_edges/b_edges）
+      function stitchSideEdgeGroups(s) {
+        if (s && Array.isArray(s.edge_sets) && s.edge_sets.length) {
+          return s.edge_sets.map((gs) => gs.edge_ids || gs.edges || []);
+        }
+        return [s?.a_edges || [], s?.b_edges || []];
+      }
+
+      // 取缝合关系涉及的全部小边 id（含多对多情况）
+      function stitchAllEdges(s) {
+        return stitchSideEdgeGroups(s).flat();
+      }
+
+      // 返回占用给定边的现有缝合关系
+      function occupiedByStitch(edgeIds) {
+        if (!seam || !seam.stitches) return [];
+        const occ = new Set(edgeIds);
+        return seam.stitches.filter((s) =>
+          stitchAllEdges(s).some((e) => occ.has(e)),
+        );
+      }
+
+      // 校验并生成 stitch_id
+      function nextStitchId() {
+        let max = 0;
+        for (const s of seam?.stitches || []) {
+          const m = /stitch_(\d+)$/.exec(s.stitch_id || "");
+          if (m) max = Math.max(max, parseInt(m[1], 10));
+        }
+        return `stitch_${String(max + 1).padStart(3, "0")}`;
+      }
+
+      // 生成 point_matches（按端点距离最小化选择方向）
+      function buildPointMatches(A, B) {
+        const a0 = A.edgeIds[0];
+        const a1 = A.edgeIds[A.edgeIds.length - 1];
+        const b0 = B.edgeIds[0];
+        const b1 = B.edgeIds[B.edgeIds.length - 1];
+        const dist = ([p1, p2]) => Math.hypot(p1[0] - p2[0], p1[1] - p2[1]);
+        // 正向：a首-b首，a尾-b尾；反向：a首-b尾，a尾-b首
+        const straight = dist(A.startPoint, B.startPoint) + dist(A.endPoint, B.endPoint);
+        const crossed = dist(A.startPoint, B.endPoint) + dist(A.endPoint, B.startPoint);
+        if (straight <= crossed) {
+          return [
+            { a: { edge_id: a0, endpoint: "start" }, b: { edge_id: b0, endpoint: "start" } },
+            { a: { edge_id: a1, endpoint: "end" }, b: { edge_id: b1, endpoint: "end" } },
+          ];
+        }
+        return [
+          { a: { edge_id: a0, endpoint: "start" }, b: { edge_id: b1, endpoint: "end" } },
+          { a: { edge_id: a1, endpoint: "end" }, b: { edge_id: b0, endpoint: "start" } },
+        ];
+      }
+
+      // 二次确认弹窗入口：点击“确认缝合”后弹出，经用户确认才真正建立关系
+      function manualConfirm() {
+        const chains = manualMode.selections;
+        if (chains.length < 2) {
+          toast("请至少框选 2 条组边后再确认缝合");
+          return;
+        }
+        // 同裁片校验：同一非袖片裁片只能出现一条组边；
+        // 袖片允许同裁片上的多条（前/后袖缝等）互缝
+        const byPanel = {};
+        for (const c of chains) {
+          (byPanel[c.panelId] = byPanel[c.panelId] || []).push(c);
+        }
+        for (const pid in byPanel) {
+          if (byPanel[pid].length > 1 && !isSleevePanel(pid)) {
+            toast(
+              `裁片「${pid}」出现了多个组边（非袖片），请仅保留其一后重选`,
+            );
+            return;
+          }
+        }
+        const desc = chains
+          .map(
+            (c, i) =>
+              `#${i + 1}「${c.panelId}」（${c.edgeIds.length} 边 / ${c.length.toFixed(0)}mm）`,
+          )
+          .join(" 与 ");
+        openConfirmModal(
+          "确认多对多缝合关系",
+          `确定要为以下 ${chains.length} 条组边建立相互缝合关联吗？\n${desc}` +
+            `\n\n确认后将写入缝合关系 JSON（多对多 seam_group），需保存后才永久生效。`,
+          () => createManualStitch(),
+          {
+            confirmText: `确认缝合（${chains.length} 条）`,
+            confirmClass: "primary",
+          },
+        );
+      }
+
+      // 判断裁片是否为袖片（role 含 'sleeve'），允许其同裁片前后袖缝互缝
+      function isSleevePanel(panelId) {
+        const p = (garment?.panels || []).find((x) => x.panel_id === panelId);
+        return !!(p && /sleeve/i.test(p.role || ""));
+      }
+
+      function createManualStitch() {
+        const chains = manualMode.selections.slice();
+        if (chains.length < 2) return;
+        const stitchId = nextStitchId();
+        const finite = (v) => Number.isFinite(v) ? v : 0;
+
+        // 通用多对多数据：edge_sets 记录每条参与组边（含裁片、边、组、端点、长度）
+        const edge_sets = chains.map((c, i) => ({
+          chain_index: i,
+          panel_id: c.panelId,
+          edge_ids: c.edgeIds.slice(),
+          group_ids: (c.groupIds || []).slice(),
+          start_point: c.startPoint.slice(),
+          end_point: c.endPoint.slice(),
+          length: finite(c.length),
+        }));
+
+        // 兼容字段：主链为第一条，其余合并为 b 侧（便于旧消费者读取）
+        const A = chains[0];
+        const B = { edgeIds: chains.slice(1).flatMap((c) => c.edgeIds) };
+        const aLen = finite(A.length);
+        const bLen = chains.slice(1).reduce((s, c) => s + finite(c.length), 0);
+        const minLen = Math.max(Math.min(aLen, bLen), 1);
+        // 多对多：所有参与组边两两配对索引（完全互缝）
+        const paired_indices = [];
+        for (let i = 0; i < chains.length; i++) {
+          for (let j = i + 1; j < chains.length; j++) {
+            paired_indices.push([i, j]);
+          }
+        }
+        const stitch = {
+          stitch_id: stitchId,
+          type: "seam",
+          relation: chains.length === 2 ? "seam_pair" : "seam_group",
+          a: A.edgeIds[0],
+          b: chains.length > 1 ? chains[1].edgeIds[0] : A.edgeIds[0],
+          a_edges: A.edgeIds,
+          b_edges: B.edgeIds,
+          a_groups: A.groupIds,
+          b_groups: chains.slice(1).flatMap((c) => c.groupIds || []),
+          // 多对多核心结构
+          edge_sets,
+          paired_indices, // 组边索引对：互相缝合关系
+          direction: "by_points",
+          point_matches:
+            chains.length >= 2 ? buildPointMatches(A, chains[1]) : [],
+          length_tolerance: Math.abs(aLen - bLen) / minLen,
+          confidence: 1,
+          review_status: "pending_review",
+          source: "manual",
+        };
+        seam = seam || { schema_version: 1, garment_id: "", status: "draft", stitches: [] };
+        if (!Array.isArray(seam.stitches)) seam.stitches = [];
+        seam.stitches.unshift(stitch);
+        toast(`已添加人工缝合关系 ${stitchId}（${chains.length} 条组边互缝）`);
+        // 保持工具激活，清空选择进入下一轮
+        manualClearSelection();
+        updateSaveBtn();
+        renderAll();
+        updateManualBar();
+      }
+
+      // 工具开关
+      manualStitchBtn.onclick = () => {
+        if (!garment) {
+          toast("请先加载 Garment JSON");
+          return;
+        }
+        if (!manualMode.active) {
+          manualMode.active = true;
+          setManualModeIndicator(true);
+          setTool("select"); // 进入人工缝合默认切到“选边”
+          if (manualAdj && Object.keys(manualAdj).length === 0) {
+            buildManualAdjacency();
+          }
+          updateManualBar();
+        } else {
+          manualExit();
+        }
+      };
+      $("#manualResetBtn").onclick = manualClearSelection;
+      $("#manualConfirmBtn").onclick = manualConfirm;
+
+      // 移动画布 / 选边 工具切换
+      toolPanBtn.onclick = () => setTool("pan");
+      toolSelectBtn.onclick = () => setTool("select");
+
+      // 已选边列表交互（容器级事件委托）：
+      //     点击各组边 → 切换该组边高亮；点击 × → 立即移除（不再二次确认）
+      manualSelectedList.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-del-idx]");
+        const item = e.target.closest("[data-idx]");
+        if (btn) {
+          removeSelectedChain(parseInt(e.target.closest("[data-del-idx]").dataset.delIdx, 10));
+          return;
+        }
+        if (item) {
+          const idx = parseInt(item.dataset.idx, 10);
+          manualMode.selectedIdx =
+            manualMode.selectedIdx === idx ? -1 : idx;
+          updateManualBar();
+          renderCanvas();
+        }
+      });
+
+      // 画布框选交互（人工模式）
+      const mArea = document.getElementById("canvasArea");
+      mArea.addEventListener("pointerdown", (e) => {
+        if (!manualMode.active || currentTool !== "select") return;
+        // 点击操作条/工具切换栏时不应触发框选
+        if (
+          e.target &&
+          e.target.closest &&
+          e.target.closest(".canvas-footer")
+        ) {
+          return;
+        }
+        manualAreaRect = manualArea();
+        e.preventDefault();
+        e.stopPropagation();
+        manualMode.dragging = true;
+        const x = e.clientX - manualAreaRect.left;
+        const y = e.clientY - manualAreaRect.top;
+        manualMode.box = { x0: x, y0: y, x1: x, y1: y };
+        showRubberBand();
+        refreshRubberBand();
+        try {
+          mArea.setPointerCapture(e.pointerId);
+        } catch (err) {
+          /* 合成事件可能抛错，忽略 */
+        }
+      });
+      mArea.addEventListener("pointermove", (e) => {
+        if (!manualMode.active || !manualMode.dragging || !manualMode.box) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const r = manualAreaRect || manualArea();
+        manualMode.box.x1 = e.clientX - r.left;
+        manualMode.box.y1 = e.clientY - r.top;
+        refreshRubberBand();
+      });
+      mArea.addEventListener("pointerup", (e) => {
+        if (!manualMode.active || !manualMode.dragging) return;
+        e.preventDefault();
+        e.stopPropagation();
+        manualMode.dragging = false;
+        hideRubberBand();
+        const b = manualMode.box;
+        manualMode.box = null;
+        if (!b) return;
+        // 忽略过小的拖拽（视为点击），避免误触发
+        const w = Math.abs(b.x1 - b.x0);
+        const h = Math.abs(b.y1 - b.y0);
+        if (w < 4 && h < 4) return;
+        applyBoxSelection(b);
+      });
+
+      // ============ 文件加载 ============
+      function loadGarmentJson(jsonData, fileName) {
+        if (!jsonData.panels || !Array.isArray(jsonData.panels)) {
+          throw new Error("Garment JSON 缺少 panels 数组");
+        }
+        garment = jsonData;
+        garmentFileName = fileName || garment.garment_id || "";
+        rebuildGeometry();
+        buildEdgeLookup();
+        buildManualAdjacency();
+        manualClearSelection();
+        focusedPanelId = null;
+        updateCanvasSize();
+        fitToCanvas();
+        renderAll();
+        toast(
+          `已加载: ${garmentFileName || garment.garment_id} (${garment.panels.length} 裁片)`,
+        );
+      }
+
+      function loadSeamJson(jsonData, fileName) {
+        if (!jsonData.stitches || !Array.isArray(jsonData.stitches)) {
+          throw new Error("Seam JSON 缺少 stitches 数组");
+        }
+        seam = jsonData;
+        seamFileName = fileName || "";
+        hoveredStitchId = null;
+        renderAll();
+        toast(`已加载: ${seam.stitches.length} 条缝合关系`);
+      }
+
+      function loadFile(file, kind) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const data = JSON.parse(reader.result);
+            if (kind === "garment") {
+              loadGarmentJson(data, file.name);
+            } else {
+              loadSeamJson(data, file.name);
+            }
+          } catch (e) {
+            toast(`JSON 解析失败: ${e.message}`);
+          }
+        };
+        reader.readAsText(file, "utf-8");
+      }
+
+      // 批量加载：自动匹配 garment 和 seam 文件
+      // 兼容两种命名：{base}.garment.reviewed.json（人工标注）与 {base}.reviewed.garment.json（自动标注工具）
+      function batchLoad(files) {
+        const garmentFiles = [];
+        const seamFiles = [];
+        const pairs = [];
+
+        for (const file of files) {
+          const name = file.name;
+          if (name.includes(".garment.")) {
+            garmentFiles.push(file);
+          } else if (name.includes(".seam.")) {
+            seamFiles.push(file);
+          }
+        }
+
+        // 配对：去掉 .garment.xxx.json / .seam.xxx.json 段后的基名一致即可
+        for (const gf of garmentFiles) {
+          const base = gf.name.replace(/\.garment\..*\.json$/, "");
+          const sf = seamFiles.find(
+            (f) => f.name.replace(/\.seam\..*\.json$/, "") === base,
+          );
+          if (sf) {
+            pairs.push({ garment: gf, seam: sf, name: base });
+          }
+        }
+
+        if (pairs.length === 0) {
+          // 退而求其次：直接加载
+          if (garmentFiles.length > 0) loadFile(garmentFiles[0], "garment");
+          if (seamFiles.length > 0) loadFile(seamFiles[0], "seam");
+          if (garmentFiles.length === 0 && seamFiles.length === 0) {
+            toast("未找到 garment.json 或 seam.json 文件");
+          }
+          return;
+        }
+
+        // 加载第一对
+        if (pairs.length > 1) {
+          toast(`找到 ${pairs.length} 对文件，已加载第一对: ${pairs[0].name}`);
+        }
+        loadFile(pairs[0].garment, "garment");
+        setTimeout(() => loadFile(pairs[0].seam, "seam"), 100);
+      }
+
+      // ============ 事件绑定 ============
+      $("#loadGarmentBtn").onclick = () => $("#garmentFile").click();
+      $("#loadSeamBtn").onclick = () => $("#seamFile").click();
+      $("#batchLoadBtn").onclick = () => $("#batchFile").click();
+      $("#saveBtn").onclick = saveSeamJson;
+
+      // 缝合关系删除按钮 - 容器级事件委托，重渲染后依然生效
+      $("#stitchList").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-delete]");
+        if (!btn) return;
+        e.stopPropagation();
+        deleteStitch(btn.dataset.delete);
+      });
+
+      // 确认弹窗
+      $("#modalConfirmBtn").onclick = () => {
+        const cb = modalOnConfirm;
+        closeModal();
+        if (cb) cb();
+      };
+      $("#modalCancelBtn").onclick = closeModal;
+      modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          if (modalOverlay.classList.contains("show")) {
+            closeModal();
+          } else if (manualMode.active) {
+            if (manualMode.selections.length) {
+              manualCancel();
+            } else {
+              manualExit();
+            }
+          }
+        }
+      });
+
+      $("#garmentFile").onchange = (e) => {
+        if (e.target.files[0]) loadFile(e.target.files[0], "garment");
+        e.target.value = "";
+      };
+      $("#seamFile").onchange = (e) => {
+        if (e.target.files[0]) loadFile(e.target.files[0], "seam");
+        e.target.value = "";
+      };
+      $("#batchFile").onchange = (e) => {
+        if (e.target.files.length) batchLoad([...e.target.files]);
+        e.target.value = "";
+      };
+
+      // 拖拽加载 - 阻止浏览器默认行为
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        document.body.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
+
+      const canvasArea = document.querySelector('.canvas-area');
+      canvasArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        canvasArea.style.background = '#dbeafe';
+      });
+      canvasArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        canvasArea.style.background = '';
+      });
+      canvasArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        canvasArea.style.background = '';
+        const files = [...e.dataTransfer.files].filter(f => f.name.endsWith('.json'));
+        if (files.length === 0) { toast('请拖入 JSON 文件'); return; }
+        if (files.length === 1) {
+          const name = files[0].name;
+          if (name.includes('.garment.reviewed.json') || name.includes('.garment.')) {
+            loadFile(files[0], 'garment');
+          } else if (name.includes('.seam.reviewed.json') || name.includes('.seam.')) {
+            loadFile(files[0], 'seam');
+          } else {
+            loadFile(files[0], 'garment');
+          }
+        } else {
+          batchLoad(files);
+        }
+      });
+
+      // 标签/缝合线开关
+      $("#showLabels").onchange = (e) => {
+        showLabels = e.target.checked;
+        $("#labelToggle").classList.toggle("active", showLabels);
+        renderCanvas();
+      };
+      $("#showSeams").onchange = (e) => {
+        showSeams = e.target.checked;
+        $("#seamToggle").classList.toggle("active", showSeams);
+        renderCanvas();
+      };
+
+      // 缩放/平移
+      $("#fitBtn").onclick = fitToCanvas;
+      $("#zoomInBtn").onclick = () => {
+        const cx = svgW / 2, cy = svgH / 2;
+        const old = transform.k;
+        transform.k = Math.min(8, old * 1.2);
+        transform.x = cx - (cx - transform.x) * transform.k / old;
+        transform.y = cy - (cy - transform.y) * transform.k / old;
+        updateTransform();
+      };
+      $("#zoomOutBtn").onclick = () => {
+        const cx = svgW / 2, cy = svgH / 2;
+        const old = transform.k;
+        transform.k = Math.max(0.05, old / 1.2);
+        transform.x = cx - (cx - transform.x) * transform.k / old;
+        transform.y = cy - (cy - transform.y) * transform.k / old;
+        updateTransform();
+      };
+
+      // SVG 滚轮缩放
+      svg.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          const r = svg.getBoundingClientRect();
+          const mx = e.clientX - r.left;
+          const my = e.clientY - r.top;
+          const old = transform.k;
+          const next = Math.max(
+            0.05,
+            Math.min(8, old * (e.deltaY < 0 ? 1.12 : 0.89)),
+          );
+          transform.x = mx - ((mx - transform.x) * next) / old;
+          transform.y = my - ((my - transform.y) * next) / old;
+          transform.k = next;
+          updateTransform();
+        },
+        { passive: false },
+      );
+
+      // SVG 拖拽平移（仅在空白区域；工具为“移动画布”时启用，选边时禁用）
+      svg.addEventListener("pointerdown", (e) => {
+        if (currentTool !== "pan") return;
+        if (e.target === svg || e.target === viewport) {
+          dragState = {
+            x: e.clientX,
+            y: e.clientY,
+            tx: transform.x,
+            ty: transform.y,
+          };
+          svg.setPointerCapture(e.pointerId);
+          svg.classList.add("dragging");
+        }
+      });
+      svg.addEventListener("pointermove", (e) => {
+        if (dragState) {
+          transform.x = dragState.tx + (e.clientX - dragState.x);
+          transform.y = dragState.ty + (e.clientY - dragState.y);
+          updateTransform();
+        }
+      });
+      svg.addEventListener("pointerup", () => {
+        dragState = null;
+        svg.classList.remove("dragging");
+      });
+
+      // 响应窗口大小变化
+      window.addEventListener("resize", () => {
+        updateCanvasSize();
+        renderCanvas();
+      });
+
+      // 初始渲染（延迟一帧确保布局完成）
+      requestAnimationFrame(() => {
+        updateCanvasSize();
+        renderAll();
+        fitToCanvas();
+      });
+    </script>
+  </body>
+</html>

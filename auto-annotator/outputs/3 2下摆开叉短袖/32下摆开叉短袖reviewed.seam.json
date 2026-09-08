@@ -1,0 +1,590 @@
+{
+  "schema_version": "0.2.0",
+  "garment_id": "32下摆开叉短袖reviewed",
+  "status": "draft",
+  "supported_stitch_types": [
+    "seam",
+    "binding",
+    "fold_hem",
+    "dart",
+    "pleat",
+    "zipper",
+    "button",
+    "pocket_attach",
+    "waistband",
+    "rib"
+  ],
+  "stitches": [
+    {
+      "stitch_id": "stitch_001",
+      "type": "seam",
+      "relation": "front_side_to_back_side",
+      "a": "panel_006.edge_017",
+      "b": "panel_002.edge_001",
+      "a_edges": [
+        "panel_006.edge_017"
+      ],
+      "b_edges": [
+        "panel_002.edge_001",
+        "panel_002.edge_002",
+        "panel_002.edge_003",
+        "panel_002.edge_004",
+        "panel_002.edge_005"
+      ],
+      "a_groups": [
+        "panel_006.edge_group_002"
+      ],
+      "b_groups": [
+        "panel_002.edge_group_001"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_006.edge_017",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_002.edge_005",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_006.edge_017",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_002.edge_001",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.7,
+      "confidence_source": "rule_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_002",
+      "type": "seam",
+      "relation": "sleeve_cap_to_armhole",
+      "a": "panel_001.edge_001",
+      "b": "panel_003.edge_013",
+      "a_edges": [
+        "panel_001.edge_001",
+        "panel_001.edge_002",
+        "panel_001.edge_003",
+        "panel_001.edge_004",
+        "panel_001.edge_005",
+        "panel_001.edge_006",
+        "panel_001.edge_007",
+        "panel_001.edge_008",
+        "panel_001.edge_009",
+        "panel_001.edge_010",
+        "panel_001.edge_011",
+        "panel_001.edge_012",
+        "panel_001.edge_013",
+        "panel_001.edge_014",
+        "panel_001.edge_015",
+        "panel_001.edge_016",
+        "panel_001.edge_017",
+        "panel_001.edge_018"
+      ],
+      "b_edges": [
+        "panel_003.edge_013",
+        "panel_004.edge_002"
+      ],
+      "a_groups": [
+        "panel_001.edge_group_001"
+      ],
+      "b_groups": [
+        "panel_003.edge_group_004",
+        "panel_004.edge_group_002"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_001.edge_001",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_002",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_001.edge_018",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_003.edge_013",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.65,
+      "confidence_source": "rule_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_003",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_005.edge_002",
+      "b": "panel_006.edge_076",
+      "a_edges": [
+        "panel_005.edge_002"
+      ],
+      "b_edges": [
+        "panel_006.edge_076"
+      ],
+      "a_groups": [
+        "panel_005.edge_group_002"
+      ],
+      "b_groups": [
+        "panel_006.edge_group_008"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_005.edge_002",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_006.edge_076",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_005.edge_002",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_006.edge_076",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_004",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_001.edge_028",
+      "b": "panel_002.edge_046",
+      "a_edges": [
+        "panel_001.edge_028",
+        "panel_001.edge_029",
+        "panel_001.edge_030",
+        "panel_001.edge_031",
+        "panel_001.edge_032",
+        "panel_001.edge_033",
+        "panel_001.edge_034",
+        "panel_001.edge_035",
+        "panel_001.edge_036",
+        "panel_001.edge_037",
+        "panel_001.edge_038",
+        "panel_001.edge_039",
+        "panel_001.edge_040",
+        "panel_001.edge_041",
+        "panel_001.edge_042",
+        "panel_001.edge_043",
+        "panel_001.edge_044",
+        "panel_001.edge_045",
+        "panel_001.edge_046",
+        "panel_001.edge_047",
+        "panel_001.edge_048"
+      ],
+      "b_edges": [
+        "panel_002.edge_046"
+      ],
+      "a_groups": [
+        "panel_001.edge_group_006"
+      ],
+      "b_groups": [
+        "panel_002.edge_group_004"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_001.edge_028",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_002.edge_046",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_001.edge_048",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_002.edge_046",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_005",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_002.edge_006",
+      "b": "panel_003.edge_001",
+      "a_edges": [
+        "panel_002.edge_006"
+      ],
+      "b_edges": [
+        "panel_003.edge_001",
+        "panel_003.edge_002",
+        "panel_003.edge_003",
+        "panel_003.edge_004",
+        "panel_003.edge_005",
+        "panel_003.edge_006"
+      ],
+      "a_groups": [
+        "panel_002.edge_group_002"
+      ],
+      "b_groups": [
+        "panel_003.edge_group_001"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_002.edge_006",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_003.edge_006",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_002.edge_006",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_003.edge_001",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_006",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_006.edge_018",
+      "b": "panel_004.edge_028",
+      "a_edges": [
+        "panel_006.edge_018",
+        "panel_006.edge_019",
+        "panel_006.edge_020",
+        "panel_006.edge_021",
+        "panel_006.edge_022",
+        "panel_006.edge_023",
+        "panel_006.edge_024",
+        "panel_006.edge_025",
+        "panel_006.edge_026",
+        "panel_006.edge_027",
+        "panel_006.edge_028",
+        "panel_006.edge_029",
+        "panel_006.edge_030",
+        "panel_006.edge_031",
+        "panel_006.edge_032",
+        "panel_006.edge_033"
+      ],
+      "b_edges": [
+        "panel_004.edge_028",
+        "panel_004.edge_029",
+        "panel_004.edge_030",
+        "panel_004.edge_031",
+        "panel_004.edge_032",
+        "panel_004.edge_033",
+        "panel_004.edge_034",
+        "panel_004.edge_035",
+        "panel_004.edge_036",
+        "panel_004.edge_037",
+        "panel_004.edge_038",
+        "panel_004.edge_039",
+        "panel_004.edge_040",
+        "panel_004.edge_041"
+      ],
+      "a_groups": [
+        "panel_006.edge_group_003"
+      ],
+      "b_groups": [
+        "panel_004.edge_group_005"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_006.edge_018",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_041",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_006.edge_033",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_028",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_007",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_006.edge_060",
+      "b": "panel_004.edge_054",
+      "a_edges": [
+        "panel_006.edge_060",
+        "panel_006.edge_061",
+        "panel_006.edge_062",
+        "panel_006.edge_063",
+        "panel_006.edge_064",
+        "panel_006.edge_065",
+        "panel_006.edge_066",
+        "panel_006.edge_067",
+        "panel_006.edge_068",
+        "panel_006.edge_069",
+        "panel_006.edge_070",
+        "panel_006.edge_071",
+        "panel_006.edge_072",
+        "panel_006.edge_073",
+        "panel_006.edge_074",
+        "panel_006.edge_075"
+      ],
+      "b_edges": [
+        "panel_004.edge_054",
+        "panel_004.edge_055",
+        "panel_004.edge_056",
+        "panel_004.edge_057",
+        "panel_004.edge_058",
+        "panel_004.edge_059",
+        "panel_004.edge_060",
+        "panel_004.edge_061",
+        "panel_004.edge_062",
+        "panel_004.edge_063",
+        "panel_004.edge_064",
+        "panel_004.edge_065",
+        "panel_004.edge_066",
+        "panel_004.edge_067"
+      ],
+      "a_groups": [
+        "panel_006.edge_group_007"
+      ],
+      "b_groups": [
+        "panel_004.edge_group_009"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_006.edge_060",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_067",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_006.edge_075",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_054",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_008",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_003.edge_024",
+      "b": "panel_001.edge_019",
+      "a_edges": [
+        "panel_003.edge_024"
+      ],
+      "b_edges": [
+        "panel_001.edge_019"
+      ],
+      "a_groups": [
+        "panel_003.edge_group_006"
+      ],
+      "b_groups": [
+        "panel_001.edge_group_002"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_003.edge_024",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_001.edge_019",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_003.edge_024",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_001.edge_019",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_009",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_001.edge_027",
+      "b": "panel_006.edge_034",
+      "a_edges": [
+        "panel_001.edge_027"
+      ],
+      "b_edges": [
+        "panel_006.edge_034"
+      ],
+      "a_groups": [
+        "panel_001.edge_group_005"
+      ],
+      "b_groups": [
+        "panel_006.edge_group_004"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_001.edge_027",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_006.edge_034",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_001.edge_027",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_006.edge_034",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    },
+    {
+      "stitch_id": "stitch_010",
+      "type": "seam",
+      "relation": "seam_pair",
+      "a": "panel_006.edge_059",
+      "b": "panel_004.edge_027",
+      "a_edges": [
+        "panel_006.edge_059"
+      ],
+      "b_edges": [
+        "panel_004.edge_027"
+      ],
+      "a_groups": [
+        "panel_006.edge_group_006"
+      ],
+      "b_groups": [
+        "panel_004.edge_group_004"
+      ],
+      "direction": "by_points",
+      "point_matches": [
+        {
+          "a": {
+            "edge_id": "panel_006.edge_059",
+            "endpoint": "start"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_027",
+            "endpoint": "end"
+          }
+        },
+        {
+          "a": {
+            "edge_id": "panel_006.edge_059",
+            "endpoint": "end"
+          },
+          "b": {
+            "edge_id": "panel_004.edge_027",
+            "endpoint": "start"
+          }
+        }
+      ],
+      "length_tolerance": 0.03,
+      "confidence": 0.35,
+      "confidence_source": "geometry_inferred",
+      "review_status": "needs_review"
+    }
+  ],
+  "review": {
+    "status": "needs_review",
+    "created_by": "auto_annotator",
+    "notes": [
+      "自动缝合关系仅为候选草稿；确认边语义和方向后再交给 3D 执行器。"
+    ]
+  }
+}

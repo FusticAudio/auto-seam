@@ -1,0 +1,89 @@
+# =====================
+# Python / 依赖
+# =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+*.whl
+.venv/
+venv/
+env/
+ENV/
+
+# 依赖锁定/缓存
+.pip/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# =====================
+# 环境配置 / 敏感信息
+# =====================
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+*.key
+*.pem
+*.crt
+config/secrets/
+credentials*
+
+# =====================
+# 日志 / 临时文件
+# =====================
+logs/
+*.log
+*.pid
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# =====================
+# 数据产物 / 运行临时文件
+# =====================
+# auto-annotator/outputs/ 内含示例 reviewed JSON，作为回归测试样本予以保留
+# （如需忽略生成产物，可放开下面一行）：
+# auto-annotator/outputs/*/
+tmp/
+*.png.tmp
+# 代码库根部的生成可视化物（如 panels_viz.png），非源码
+*_viz.png
+
+# =====================
+# 编辑器 / IDE
+# =====================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# =====================
+# 操作系统隐藏文件
+# =====================
+desktop.ini
+$RECYCLE.BIN/
+
+# =====================
+# Node 等前端（备用，seam-preview 当前无依赖）
+# =====================
+node_modules/
+dist/

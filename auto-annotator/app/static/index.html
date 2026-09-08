@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DXF 自动缝合标注</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #fff; --line: #e3e6ea; --text: #1f2329;
+    --muted: #6b7280; --primary: #2f6fed; --primary-dark: #2457c9;
+    --ok: #16a34a; --warn: #d97706; --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 16px 24px; display: flex; align-items: center; gap: 12px;
+  }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  main { max-width: 1080px; margin: 0 auto; padding: 24px; }
+  .drop {
+    border: 2px dashed #c3cad4; border-radius: 12px; background: var(--card);
+    padding: 48px 24px; text-align: center; cursor: pointer; transition: all .15s;
+  }
+  .drop:hover, .drop.dragover { border-color: var(--primary); background: #f0f5ff; }
+  .drop .icon { font-size: 40px; margin-bottom: 8px; }
+  .drop .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .drop .file-name { font-weight: 600; margin-top: 8px; color: var(--primary); }
+  input[type=file] { display: none; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer;
+    border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 500;
+    background: var(--primary); color: #fff; transition: background .15s;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn:disabled { background: #a8b8d8; cursor: not-allowed; }
+  .btn.ghost { background: var(--card); color: var(--primary); border: 1px solid var(--primary); }
+  .btn.ghost:hover { background: #f0f5ff; }
+  .status { margin: 16px 0; display: none; align-items: center; gap: 8px; font-size: 14px; }
+  .status.show { display: flex; }
+  .status.spin { color: var(--primary); }
+  .status.error { color: var(--danger); }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; margin-top: 16px;
+  }
+  .card h2 { font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .badge {
+    font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: var(--primary);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; background: #fafbfc; }
+  .role-tag {
+    display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 6px;
+    background: #f0fdf4; color: var(--ok); border: 1px solid #bbe7c6;
+  }
+  .role-tag.unknown { background: #fff7ed; color: var(--warn); border-color: #fcd9a8; }
+  .rel-tag {
+    font-size: 12px; padding: 2px 8px; border-radius: 6px; background: #eef2ff; color: var(--primary);
+    font-family: ui-monospace, Consolas, monospace;
+  }
+  .conf { font-weight: 600; }
+  .conf.low { color: var(--warn); }
+  .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .scroll { max-height: 420px; overflow: auto; border-radius: 8px; border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1>DXF 自动缝合标注</h1>
+  <span class="sub">上传博克短袖 DXF → 自动生成 garment.json + seam.json（含 Piece Name 字段识别与缝合规则标注）</span>
+</header>
+<main>
+  <div class="drop" id="drop">
+    <div class="icon">📂</div>
+    <div>点击选择或拖拽 DXF 文件到此处</div>
+    <div class="hint">支持博克（BOKE）导出 / 已审阅（.reviewed.dxf）格式</div>
+    <div class="file-name" id="fileName"></div>
+  </div>
+  <input type="file" id="fileInput" accept=".dxf">
+
+  <div class="status" id="status"></div>
+
+  <div class="card" id="result" style="display:none">
+    <div class="toolbar">
+      <h2>标注结果 <span class="badge" id="garmentName"></span></h2>
+      <span class="muted" id="metaText"></span>
+    </div>
+    <h2 style="margin-top:16px">版片 <span class="badge" id="panelCount"></span></h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>panel_id</th><th>角色</th><th>DXF 片名</th><th>面积</th><th>边数</th><th>边组数</th></tr></thead>
+        <tbody id="panelRows"></tbody>
+      </table>
+    </div>
+    <h2 style="margin-top:16px">缝合关系 <span class="badge" id="stitchCount"></span></h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>stitch_id</th><th>语义关系</th><th>a（边数）</th><th>b（边数）</th><th>置信度</th><th>来源</th></tr></thead>
+        <tbody id="stitchRows"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn" id="dlGarment">⬇ 下载 garment.json</button>
+      <button class="btn" id="dlSeam">⬇ 下载 seam.json</button>
+      <button class="btn ghost" id="again">重新上传</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const statusEl = document.getElementById('status');
+const resultEl = document.getElementById('result');
+let current = null;
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('dragover');
+  if (e.dataTransfer.files.length) upload(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files.length) upload(fileInput.files[0]); });
+
+function setStatus(text, kind) {
+  statusEl.className = 'status show ' + (kind || 'spin');
+  statusEl.textContent = text;
+}
+
+async function upload(file) {
+  if (!file.name.toLowerCase().endsWith('.dxf')) {
+    setStatus('请选择 .dxf 文件', 'error'); return;
+  }
+  document.getElementById('fileName').textContent = file.name;
+  resultEl.style.display = 'none';
+  setStatus('正在解析 ' + file.name + ' ...');
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const res = await fetch('/api/annotate', { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+    current = {
+      name: file.name.replace(/\.dxf$/i, ''),
+      summary: data.summary,
+      garment: data.garment,
+      seam: data.seam,
+    };
+    render(data.summary);
+    setStatus('✅ 标注完成，共 ' + data.summary.panel_count + ' 个版片、' + data.summary.stitch_count + ' 条缝合关系');
+  } catch (err) {
+    setStatus('❌ ' + err.message, 'error');
+  }
+}
+
+function render(s) {
+  document.getElementById('garmentName').textContent = s.garment_id;
+  document.getElementById('metaText').textContent = '状态: ' + s.review_status;
+  document.getElementById('panelCount').textContent = s.panels.length;
+  document.getElementById('stitchCount').textContent = s.stitches.length;
+  document.getElementById('panelRows').innerHTML = s.panels.map(p => `
+    <tr>
+      <td>${p.panel_id}</td>
+      <td><span class="role-tag ${p.role === 'unknown_panel' ? 'unknown' : ''}">${p.role}</span></td>
+      <td>${esc(p.piece_name || '—')}</td>
+      <td>${fmt(p.area)}</td>
+      <td>${p.edges}</td>
+      <td>${p.groups}</td>
+    </tr>`).join('');
+  document.getElementById('stitchRows').innerHTML = s.stitches.map(st => `
+    <tr>
+      <td>${st.stitch_id}</td>
+      <td><span class="rel-tag">${st.relation}</span></td>
+      <td>${st.a}（${st.a_edges}）</td>
+      <td>${st.b}（${st.b_edges}）</td>
+      <td class="conf ${st.confidence < 0.5 ? 'low' : ''}">${st.confidence}</td>
+      <td class="muted">${st.confidence_source}</td>
+    </tr>`).join('');
+  resultEl.style.display = 'block';
+}
+
+function downloadJSON(kind) {
+  if (!current) return;
+  const data = kind === 'garment' ? current.garment : current.seam;
+  if (!data) { setStatus('❌ 没有可下载的数据，请先上传 DXF', 'error'); return; }
+  // 命名与人工标注一致：{base}.garment.reviewed.json / {base}.seam.reviewed.json
+  const base = current.name.replace(/\.reviewed$/, '');
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = base + '.' + kind + '.reviewed.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById('dlGarment').addEventListener('click', () => downloadJSON('garment'));
+document.getElementById('dlSeam').addEventListener('click', () => downloadJSON('seam'));
+document.getElementById('again').addEventListener('click', () => {
+  resultEl.style.display = 'none'; statusEl.className = 'status';
+  document.getElementById('fileName').textContent = ''; fileInput.value = '';
+});
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function fmt(n) { return Number(n).toLocaleString('zh-CN', { maximumFractionDigits: 0 }); }
+</script>
+</body>
+</html>
