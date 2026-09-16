@@ -182,7 +182,7 @@
         flex: 1;
         position: relative;
         display: grid;
-        grid-template-columns: 280px minmax(0, 1fr) auto auto;
+        grid-template-columns: 280px minmax(0, 1fr) auto;
         min-height: 0;
         overflow: hidden;
       }
@@ -340,6 +340,14 @@
         outline: 2px solid var(--blue);
         outline-offset: 1px;
       }
+      /* 编辑栏内的 vis-switch 标签需保持开关的 flex 布局，避免被 .pse-field label 的块级样式覆盖 */
+      .pse-field label.vis-switch {
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 0;
+        color: inherit;
+        font-size: inherit;
+      }
       /* 裁片语义编辑器 */
       .panel-sem-editor {
         padding: 8px;
@@ -381,6 +389,79 @@
         outline-offset: 1px;
         border-color: var(--blue);
       }
+      /* 自定义裁片名文本输入框 */
+      .pse-name-input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        font-size: 12px;
+        background: var(--card);
+        color: var(--text);
+      }
+      .pse-name-input:focus {
+        outline: 2px solid var(--blue);
+        outline-offset: 1px;
+        border-color: var(--blue);
+      }
+      .pse-name-input.invalid {
+        border-color: #dc2626;
+        outline-color: #dc2626;
+      }
+      .pse-name-hint {
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 3px;
+      }
+      .pse-name-error {
+        font-size: 10px;
+        color: #dc2626;
+        margin-top: 3px;
+        min-height: 0;
+      }
+      /* 自定义语义优先级提示 */
+      .pse-sem-hint {
+        margin-top: 8px;
+        padding: 7px 9px;
+        font-size: 11px;
+        line-height: 1.55;
+        color: #5b6472;
+        background: #f3f6fa;
+        border: 1px solid var(--border, #e2e8f0);
+        border-left: 3px solid var(--blue, #2563eb);
+        border-radius: 6px;
+      }
+      /* 自定义语义模式开头栏：标题与开关左右分离，避免重叠 */
+      .pse-label-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .pse-label-row .pse-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text);
+        line-height: 1;
+      }
+      /* 校验失败提示与禁用态 */
+      .pse-name-input.invalid,
+      .pse-select.invalid {
+        border-color: #dc2626 !important;
+        box-shadow: 0 0 0 1px #dc2626 inset;
+      }
+      .pse-name-input:disabled,
+      .pse-select:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .btn:disabled,
+      .btn:disabled:hover {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
       /* 二级关联下拉：一级大类 + 二级子类并排，窄屏下自动收缩 */
       .pse-cats {
         display: flex;
@@ -390,6 +471,39 @@
         flex: 1;
         flex-basis: 0;
         min-width: 0;
+      }
+      /* 命名方式二选一（语义类别 / 自定义名称） */
+      .pse-mode {
+        display: flex;
+        gap: 6px;
+      }
+      .pse-mode-opt {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--text);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .pse-mode-opt input {
+        margin: 0;
+        accent-color: var(--blue);
+      }
+      .pse-mode-opt:has(input:checked) {
+        border-color: var(--blue);
+        background: #eff6ff;
+      }
+      .pse-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .pse-disabled .pse-select,
+      .pse-disabled .pse-name-input {
+        background: var(--bg);
       }
       .pse-preview {
         font-size: 11px;
@@ -629,7 +743,9 @@
         cursor: pointer;
         font-size: 12px;
         line-height: 1;
-        transition: background 0.12s ease, color 0.12s ease,
+        transition:
+          background 0.12s ease,
+          color 0.12s ease,
           border-color 0.12s ease;
       }
       .tool-btn:hover:not(.active) {
@@ -691,7 +807,7 @@
         fill: #a78bfa;
       }
       .panel-label {
-        font-size: 11px;
+        font-size: 9px;
         font-weight: 700;
         fill: #1f2937;
         paint-order: stroke;
@@ -712,6 +828,41 @@
         text-anchor: middle;
         pointer-events: none;
         opacity: 0.85;
+      }
+      .notch-line {
+        stroke: #e11d48;
+        stroke-width: 2px;
+        stroke-linecap: round;
+        pointer-events: none;
+        opacity: 0.95;
+      }
+      .notch-midpoint {
+        fill: #ffb020;
+        stroke: #fff;
+        stroke-width: 1.5px;
+        pointer-events: none;
+      }
+      .notch-midpoint.upper {
+        fill: #0ea5e9;
+      }
+      .notch-measure {
+        fill: none;
+        stroke: #34d399;
+        stroke-width: 1px;
+        stroke-dasharray: 4 3;
+        pointer-events: none;
+        opacity: 0.9;
+      }
+      .notch-measure-label {
+        /* 文字位于被 scale(k) 缩放的 viewport 内，字号随画布缩放同步成比例变化 */
+        font-size: 7px;
+        fill: #059669;
+        stroke: #fff;
+        stroke-width: 3px;
+        paint-order: stroke;
+        text-anchor: middle;
+        font-weight: bold;
+        pointer-events: none;
       }
       .seam-line {
         fill: none;
@@ -775,8 +926,15 @@
         animation: manual-pulse 1.2s infinite;
       }
       @keyframes manual-pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(0.75); }
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.4;
+          transform: scale(0.75);
+        }
       }
 
       /* 框选橡皮筋：动态边界 + 半透明填充 */
@@ -794,7 +952,8 @@
         display: block;
       }
       @keyframes rubber-pulse {
-        0%, 100% {
+        0%,
+        100% {
           border-color: rgba(37, 99, 235, 0.7);
           box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
         }
@@ -813,59 +972,130 @@
         border: 1px solid rgba(220, 38, 38, 0.35);
       }
 
-      /* ===== 已选边列表栏（画布右侧非卡片式区域） ===== */
-      .manual-selected-panel {
-        grid-column: 4;
-        width: 264px;
-        min-width: 0;
-        background: #fafbfc;
-        border-left: 1px solid var(--border);
-        display: none;
-        flex-direction: column;
-        min-height: 0;
-        overflow: hidden;
-      }
-      .manual-selected-panel.show {
-        display: flex;
-      }
-      /* ===== 裁片语义编辑栏（画布右侧面板） ===== */
-      .panel-sem-panel {
+      /* ===== 右侧功能栏（默认隐藏，仅在使用对应功能时按需显示） ===== */
+      /* 外层用 grid 0fr↔1fr：收起时不占用任何网格列空间，展开时平滑滑出 */
+      .drawer {
         grid-column: 3;
+        display: grid;
+        grid-template-columns: 0fr;
+        transition: grid-template-columns 0.35s ease;
+        min-width: 0;
+        overflow: hidden;
+        min-height: 0;
+      }
+      .drawer.open {
+        grid-template-columns: 1fr;
+      }
+      .drawer-inner {
+        display: flex;
+        flex-direction: column;
         width: 320px;
         min-width: 0;
+        min-height: 0;
         background: #fafbfc;
         border-left: 1px solid var(--border);
+        overflow: hidden;
+      }
+      /* 同一时间仅显示一个功能模块 */
+      .drawer-section {
         display: none;
         flex-direction: column;
         min-height: 0;
+        flex: 1;
         overflow: hidden;
       }
-      .panel-sem-panel.show {
+      .drawer-section.active {
         display: flex;
       }
-      .panel-sem-panel .msp-header,
-      .manual-selected-panel .msp-header {
+      .drawer-section-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
+        gap: 8px;
+        padding: 11px 14px;
         font-size: 13px;
         font-weight: 700;
         color: var(--text);
-        background: #fafbfc;
+        background: #f1f5f9;
         border-bottom: 1px solid var(--border);
         flex-shrink: 0;
       }
-      .manual-selected-panel .msp-count {
+      .drawer-head-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .drawer-head-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .drawer-count {
         font-size: 11px;
         color: var(--blue);
         font-weight: 700;
       }
-      .manual-selected-list {
+      .drawer-section-body {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .drawer-section-body .manual-selected-list {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
         padding: 6px 8px;
+      }
+      .drawer-section-body .panel-sem-editor {
+        flex: 1.2;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      /* 裁片语义侧边栏下半部分：修改记录 */
+      .drawer-section-body .panel-sem-history {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border-top: 1px solid var(--border);
+      }
+      .pse-history-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 7px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text);
+        background: #eef2f7;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .pse-history-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .pse-history-open {
+        flex-shrink: 0;
+        padding: 6px 10px;
+        border-top: 1px solid var(--border);
+      }
+      .pse-history-open .btn {
+        width: 100%;
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+      .manual-selected-panel {
+        display: none;
       }
       .selected-edge-item {
         display: flex;
@@ -916,7 +1146,10 @@
         margin-bottom: 6px;
         overflow: hidden;
         background: #fff;
-        transition: opacity 0.2s ease, max-height 0.2s ease, transform 0.2s ease;
+        transition:
+          opacity 0.2s ease,
+          max-height 0.2s ease,
+          transform 0.2s ease;
       }
       .selected-edge-group.sel-active {
         border-color: var(--blue);
@@ -975,7 +1208,10 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: background 0.12s ease, color 0.12s ease, transform 0.06s ease;
+        transition:
+          background 0.12s ease,
+          color 0.12s ease,
+          transform 0.06s ease;
       }
       .selected-edge-group .seg-remove:hover {
         background: rgba(220, 38, 38, 0.12);
@@ -996,39 +1232,43 @@
         border-color: transparent;
         pointer-events: none;
       }
-      .manual-selected-panel .msp-empty {
+      .drawer .msp-empty {
         padding: 16px;
         text-align: center;
         color: var(--muted);
         font-size: 12px;
       }
-      /* 中等屏：适当压缩侧栏与右侧栏宽度，保证画布空间 */
+      /* 中等屏：适当压缩侧栏与右侧功能栏宽度，保证画布空间 */
       @media (max-width: 1100px) {
         .main {
-          grid-template-columns: 240px minmax(0, 1fr) auto auto;
+          grid-template-columns: 240px minmax(0, 1fr) auto;
         }
-        .manual-selected-panel {
-          width: 232px;
-        }
-        .panel-sem-panel {
+        .drawer-inner {
           width: 300px;
         }
       }
-      /* 小屏：右侧栏改为浮于画布右侧（非卡片式），避免挤压画布 */
+      /* 小屏：右侧功能栏浮于画布右侧，避免挤压画布 */
       @media (max-width: 820px) {
         .main {
           grid-template-columns: 220px minmax(0, 1fr);
         }
-        .manual-selected-panel,
-        .panel-sem-panel {
+        .drawer {
           grid-column: 2;
+          display: flex;
           position: absolute;
           top: 0;
           right: 0;
           bottom: 0;
-          width: 236px;
-          border-left: 1px solid var(--border);
+          transform: translateX(100%);
+          transition: transform 0.3s ease;
           box-shadow: -6px 0 16px rgba(0, 0, 0, 0.08);
+        }
+        .drawer.open {
+          transform: translateX(0);
+        }
+        .drawer-inner {
+          width: 236px;
+          border-left: none;
         }
       }
       .toast {
@@ -1049,9 +1289,265 @@
       .toast.show {
         opacity: 1;
       }
+      /* ============ 修改记录查看 ============ */
+      .hm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 220;
+        padding: 16px;
+      }
+      .hm-overlay.show {
+        display: flex;
+      }
+      .hm-modal {
+        background: var(--card, #fff);
+        border-radius: 12px;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.28);
+        width: 96vw;
+        max-width: 1080px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .hm-modal h3 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .hm-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border, #e5e7eb);
+        background: #fafafa;
+      }
+      .hm-tabs {
+        display: flex;
+        gap: 8px;
+        padding: 12px 18px 0;
+      }
+      .hm-tab {
+        padding: 7px 16px;
+        border: 1px solid transparent;
+        border-bottom: none;
+        background: transparent;
+        font-size: 13px;
+        color: var(--muted, #666);
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+      }
+      .hm-tab.active {
+        background: #fff;
+        border-color: var(--border, #e5e7eb);
+        color: var(--blue, #2563eb);
+        font-weight: 600;
+      }
+      .hm-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 0 18px 12px;
+        background: #fff;
+        border-bottom: 1px solid var(--border, #eee);
+      }
+      .hm-toolbar input,
+      .hm-toolbar select {
+        padding: 6px 8px;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 6px;
+        font-size: 12px;
+        background: #fff;
+        color: var(--text, #333);
+      }
+      .hm-search {
+        flex: 1;
+        min-width: 140px;
+      }
+      .hm-toolbar label {
+        font-size: 12px;
+        color: var(--muted, #666);
+      }
+      .hm-body {
+        flex: 1;
+        overflow: auto;
+        padding: 6px 18px 16px;
+        background: #fff;
+      }
+      .hm-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .hm-item {
+        border: 1px solid var(--border, #eee);
+        border-left: 3px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fcfcfd;
+      }
+      .hm-item.hm-panel {
+        border-left-color: var(--blue, #2563eb);
+      }
+      .hm-item.hm-seam {
+        border-left-color: var(--red, #dc2626);
+      }
+      /* 可回退的裁片修改记录条目 */
+      .hm-item.hm-rollable {
+        cursor: pointer;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+      }
+      .hm-item.hm-rollable:hover {
+        background: #f0f7ff;
+        box-shadow: 0 0 0 1px var(--blue, #2563eb) inset;
+      }
+      .hm-roll-hint {
+        display: block;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--blue, #2563eb);
+        text-align: right;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+      }
+      .hm-item.hm-rollable:hover .hm-roll-hint {
+        opacity: 1;
+      }
+      .hm-item-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .hm-time {
+        color: var(--muted, #888);
+        font-variant-numeric: tabular-nums;
+      }
+      .hm-action {
+        font-weight: 600;
+        color: var(--text, #333);
+      }
+      .hm-name {
+        background: #f1f5f9;
+        border-radius: 6px;
+        padding: 2px 7px;
+        color: #475569;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: 11px;
+      }
+      .hm-diff {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        font-size: 12px;
+      }
+      .hm-diff-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .hm-diff-field {
+        color: var(--muted, #666);
+        min-width: 88px;
+      }
+      .hm-diff-old {
+        color: #b91c1c;
+        text-decoration: line-through;
+        word-break: break-all;
+      }
+      .hm-diff-new {
+        color: #15803d;
+        word-break: break-all;
+      }
+      .hm-arrow {
+        color: #9ca3af;
+      }
+      .hm-summary {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted, #555);
+        word-break: break-all;
+      }
+      .hm-empty {
+        text-align: center;
+        color: var(--muted, #999);
+        padding: 40px 0;
+        font-size: 13px;
+      }
+      .hm-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-top: 1px solid var(--border, #eee);
+        background: #fafafa;
+        font-size: 12px;
+        color: var(--muted, #666);
+      }
+      .hm-pager {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hm-pager button {
+        padding: 4px 10px;
+        border: 1px solid var(--border, #ddd);
+        background: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--text, #333);
+      }
+      .hm-pager button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
+    <!-- 修改记录查看弹窗（置于 body 顶端，确保脚本执行时元素已存在） -->
+    <div class="hm-overlay" id="hmOverlay">
+      <div class="hm-modal" role="dialog" aria-modal="true" aria-label="修改记录">
+        <div class="hm-header">
+          <h3>修改记录</h3>
+          <button class="pse-close" id="hmCloseBtn" type="button" title="关闭" aria-label="关闭">✕</button>
+        </div>
+        <div class="hm-tabs">
+          <button class="hm-tab active" id="hmTabPanel" data-target="panel">裁片修改记录</button>
+          <button class="hm-tab" id="hmTabSeam" data-target="seam">缝合关系修改记录</button>
+        </div>
+        <div class="hm-toolbar">
+          <label>起始 <input type="datetime-local" id="hmFrom" /></label>
+          <label>结束 <input type="datetime-local" id="hmTo" /></label>
+          <input
+            type="text"
+            class="hm-search"
+            id="hmSearch"
+            placeholder="搜索关键词：裁片名 / 缝合ID / 操作人 / 操作内容…"
+          />
+        </div>
+        <div class="hm-body">
+          <div class="hm-list" id="hmList"></div>
+        </div>
+        <div class="hm-footer">
+          <span id="hmCount">共 0 条记录</span>
+          <span class="hm-pager">
+            <button id="hmPrev" type="button" title="上一页">‹ 上一页</button>
+            <span id="hmPage"></span>
+            <button id="hmNext" type="button" title="下一页">下一页 ›</button>
+          </span>
+        </div>
+      </div>
+    </div>
     <div class="app">
       <header class="header">
         <h1>缝合关系预览</h1>
@@ -1092,13 +1588,29 @@
           <label class="toggle-group" id="edgeSemanticToggle">
             <input type="checkbox" id="showEdgeSemantics" /> 大边语义
           </label>
+          <label class="toggle-group active" id="notchToggle">
+            <input type="checkbox" id="showNotches" checked /> 刀口标记
+          </label>
           <label class="toggle-group active" id="seamToggle">
             <input type="checkbox" id="showSeams" checked /> 缝合关系线
           </label>
-          <button class="btn hg-primary" id="manualStitchBtn" title="通过框选人工建立缝合关系">人工缝合</button>
+          <button
+            class="btn hg-primary"
+            id="manualStitchBtn"
+            title="通过框选人工建立缝合关系"
+          >
+            人工缝合
+          </button>
         </div>
         <span class="header-sep" aria-hidden="true"></span>
         <div class="header-group hg-nav">
+          <button
+            class="btn"
+            id="historyBtn"
+            title="查看裁片/缝合关系的修改记录"
+          >
+            修改记录
+          </button>
           <button class="btn" id="fitBtn">适合画布</button>
           <div class="zoom-group">
             <button class="btn zoom-btn" id="zoomInBtn" title="放大">＋</button>
@@ -1156,13 +1668,6 @@
             </div>
             <div class="cf-info" id="manualInfo"></div>
             <div class="cf-mode">
-              <button class="tool-btn active" id="toolPanBtn" type="button">
-                移动画布
-              </button>
-              <button class="tool-btn" id="toolSelectBtn" type="button">
-                选边
-              </button>
-              <span class="cf-sep" aria-hidden="true"></span>
               <button
                 class="tool-btn cf-toggle"
                 id="splitCapBtn"
@@ -1186,45 +1691,79 @@
             </div>
           </div>
         </section>
-        <div
-          class="manual-selected-panel"
-          id="manualSelectedPanel"
-          aria-label="已选边列表"
-        >
-          <div class="msp-header">
-            <span>已选边</span>
-            <span class="msp-count" id="manualSelectedCount">0</span>
+        <aside class="drawer" id="rightDrawer" aria-label="右侧功能栏">
+          <div class="drawer-inner">
+            <!-- 已选边模块（人工缝合时显示） -->
+            <section class="drawer-section" id="mspSection" aria-label="已选边列表">
+              <div class="drawer-section-head">
+                <span class="drawer-head-title">
+                  已选边
+                  <span class="pse-dirty" id="manualDirtyBadge" hidden>进行中</span>
+                </span>
+                <span class="drawer-head-right">
+                  <span class="drawer-count" id="manualSelectedCount">0</span>
+                </span>
+              </div>
+              <div class="drawer-section-body">
+                <div class="manual-selected-list" id="manualSelectedList"></div>
+              </div>
+            </section>
+            <!-- 裁片语义模块（选中裁片时显示） -->
+            <section class="drawer-section" id="pseSection" aria-label="裁片语义编辑">
+              <div class="drawer-section-head">
+                <span class="drawer-head-title">
+                  裁片语义
+                  <span class="pse-dirty" id="pseDirtyBadge" hidden>未保存</span>
+                </span>
+                <span class="drawer-head-right">
+                  <button
+                    type="button"
+                    class="pse-close"
+                    id="pseCloseBtn"
+                    title="取消选择，关闭语义编辑"
+                  >
+                    ×
+                  </button>
+                </span>
+              </div>
+              <div class="drawer-section-body">
+                <div class="panel-sem-editor" id="panelSemEditor">
+                  <div class="empty-state">选择裁片以编辑其语义</div>
+                </div>
+                <!-- 修改记录：内嵌于侧边栏下半部分，复用本地审计日志 historyLog -->
+                <div class="panel-sem-history">
+                  <div class="pse-history-head">
+                    <span class="drawer-head-title">修改记录</span>
+                    <span class="drawer-count" id="boardSemHistoryCount">0</span>
+                  </div>
+                  <div class="hm-list pse-history-list" id="pseHistoryList"></div>
+                  <div class="pse-history-open">
+                    <button
+                      type="button"
+                      class="btn"
+                      id="boardHistoryBtn"
+                      title="打开完整修改记录（含筛选/搜索/分页）"
+                    >
+                      查看完整修改记录
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
-          <div class="manual-selected-list" id="manualSelectedList"></div>
-        </div>
-        <div
-          class="panel-sem-panel"
-          id="panelSemPanel"
-          aria-label="裁片语义编辑"
-        >
-          <div class="msp-header">
-            <span>裁片语义</span>
-            <span class="pse-dirty" id="pseDirtyBadge" hidden>未保存</span>
-            <button
-              type="button"
-              class="pse-close"
-              id="pseCloseBtn"
-              title="取消选择，关闭语义编辑"
-            >
-              ×
-            </button>
-          </div>
-          <div class="panel-sem-editor" id="panelSemEditor">
-            <div class="empty-state">选择裁片以编辑其语义</div>
-          </div>
-        </div>
+        </aside>
       </main>
     </div>
     <div class="toast" id="toast"></div>
 
     <!-- 确认弹窗 -->
     <div class="modal-overlay" id="modalOverlay">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modalTitle"
+      >
         <h3 id="modalTitle">确认操作</h3>
         <p id="modalMessage"></p>
         <div class="modal-actions">
@@ -1248,26 +1787,42 @@
       // 被隐藏（不显示在画布上）的裁片集合
       let hiddenPanels = new Set();
       let showLabels = true;
-      let showEdgeSemantics =false; // 在画布边缘中点叠加语义名称标注
+      let showEdgeSemantics = false; // 在画布边缘中点叠加语义名称标注
       let showSeams = true;
+      let showNotches = true; // 领片刀口标记（panel.notches）
       let garmentFileName = "";
       // 各裁片在加载时的“原始”语义 role，用于“裁片语义”编辑器的撤销还原
       let panelOriginalRoleMap = new Map();
+      // 各裁片在加载时的“原始”自定义名，用于脏检测与撤销判断
+      let panelOriginalNameMap = new Map();
       // 语义编辑撤销栈：{panelId, role}，role 为该次修改前的旧值；撤销时逐条回退
       let semEditHistory = [];
       // 已修改（未保存）的裁片语义草稿：panel_id -> 最新 role，用于临时保存（localStorage）与未保存徽标
       let draftRoles = new Map();
+      // 已修改（未保存）的裁片自定义名草稿：panel_id -> 最新 name（自定义裁片名）
+      let draftNames = new Map();
+      // 临时（未点「临时保存」）修改：panel_id -> { role, name }。仅存在于编辑栏，
+      // 未提交前不写入 panel / 草稿 / 撤销栈 / 修改记录；离开或关闭编辑栏时清空重置。
+      let pendingEdits = new Map();
       const DRAFT_PREFIX = "seamPreview.semDraft."; // 临时保存的 localStorage 键前缀
 
       // ============ 裁片语义：临时保存（草稿）工具 ============
       // 临时保存：把修改中的、尚未最终导出的语义草稿写入 localStorage，
       // 防止页面刷新/误操作导致数据丢失；最终“保存 Garment JSON”后清除。
       function semDraftKey() {
-        return DRAFT_PREFIX + (garmentFileName || garment?.garment_id || "default");
+        return (
+          DRAFT_PREFIX + (garmentFileName || garment?.garment_id || "default")
+        );
+      }
+      // 存在待临时保存修改的裁片总数（role 与自定义名两维度的并集），供徽标与临时保存判断
+      function dirtyPanelCount() {
+        const all = new Set(draftRoles.keys());
+        for (const k of draftNames.keys()) all.add(k);
+        return all.size;
       }
       function persistDraft() {
         if (!garment) return;
-        if (!draftRoles.size) {
+        if (!dirtyPanelCount()) {
           // 无待保存修改时清除草稿，避免残留旧数据
           clearDraft();
           return;
@@ -1278,6 +1833,7 @@
             JSON.stringify({
               file: garmentFileName,
               roles: Object.fromEntries(draftRoles),
+              names: Object.fromEntries(draftNames),
               time: Date.now(),
             }),
           );
@@ -1288,6 +1844,7 @@
       }
       function clearDraft() {
         draftRoles.clear();
+        draftNames.clear();
         try {
           localStorage.removeItem(semDraftKey());
         } catch (e) {
@@ -1302,12 +1859,22 @@
           const raw = localStorage.getItem(semDraftKey());
           if (!raw) return 0;
           const data = JSON.parse(raw);
-          const roles = data && data.roles;
-          if (!roles) return 0;
+          if (!data) return 0;
+          const roles = data.roles;
+          const names = data.names;
           for (const p of garment.panels || []) {
-            if (roles[p.panel_id] && roles[p.panel_id] !== p.role) {
+            if (roles && roles[p.panel_id] && roles[p.panel_id] !== p.role) {
               p.role = roles[p.panel_id];
               draftRoles.set(p.panel_id, p.role);
+              restored++;
+            }
+            if (
+              names &&
+              Object.prototype.hasOwnProperty.call(names, p.panel_id) &&
+              String(names[p.panel_id] || "") !== String(p.name ?? "")
+            ) {
+              p.name = names[p.panel_id] || "";
+              draftNames.set(p.panel_id, p.name);
               restored++;
             }
           }
@@ -1316,10 +1883,15 @@
         }
         return restored;
       }
-      // 更新语义编辑栏头部的“未保存”徽标显示
+      // 更新语义编辑栏头部的“未保存”徽标显示（含已提交草稿与未提交的临时修改）
       function updateDirtyBadge() {
         const el = $("#pseDirtyBadge");
-        if (el) el.hidden = !draftRoles.size;
+        if (!el) return;
+        el.hidden = !(pendingEdits.size || dirtyPanelCount());
+      }
+      // 更新语义编辑栏头部的“未保存”徽标：pending 临时修改或已提交草稿任一存在即亮起
+      function updateUnsavedBadge() {
+        updateDirtyBadge();
       }
 
       // ============ 语义库映射 ============
@@ -1328,49 +1900,70 @@
       // 用于画布标签、边缘标注与选边即时语义提示。
       // 裁片语义：role -> { label: 展示名, name: 语义库中文名 }
       const PANEL_SEMANTICS = {
-        front_bodice:      { label: "前衣片",  name: "前衣片",  ids: ["front_bodice"] },
-        back_bodice:       { label: "后衣片",  name: "后衣片",  ids: ["back_bodice"] },
-        collar:            { label: "领片",    name: "领片",    ids: ["collar"] },
-        sleeve:            { label: "袖片",    name: "袖片",    ids: ["sleeve"] },
-        back_sleeve:       { label: "后袖片",  name: "后袖片",  ids: ["sleeve"] },
-        front_pants:       { label: "前裤片",  name: "前裤片",  ids: ["front_pants"] },
-        back_pants:        { label: "后裤片",  name: "后裤片",  ids: ["back_pants"] },
-        skirt_front:       { label: "前裙片",  name: "前裙片",  ids: ["skirt_front"] },
-        skirt_back:        { label: "后裙片",  name: "后裙片",  ids: ["skirt_back"] },
-        waistband:         { label: "腰头",    name: "腰头",    ids: ["waistband"] },
-        cuff:              { label: "袖克夫",  name: "袖克夫",  ids: ["cuff"] },
-        label:             { label: "领标",    name: "领标",    ids: [] },
-        unknown_panel:     { label: "未识别",  name: "未识别",  ids: [] },
+        front_bodice: {
+          label: "前衣片",
+          name: "前衣片",
+          ids: ["front_bodice"],
+        },
+        back_bodice: { label: "后衣片", name: "后衣片", ids: ["back_bodice"] },
+        collar: { label: "领片", name: "领片", ids: ["collar"] },
+        sleeve: { label: "袖片", name: "袖片", ids: ["sleeve"] },
+        back_sleeve: { label: "后袖片", name: "后袖片", ids: ["sleeve"] },
+        front_pants: { label: "前裤片", name: "前裤片", ids: ["front_pants"] },
+        back_pants: { label: "后裤片", name: "后裤片", ids: ["back_pants"] },
+        skirt_front: { label: "前裙片", name: "前裙片", ids: ["skirt_front"] },
+        skirt_back: { label: "后裙片", name: "后裙片", ids: ["skirt_back"] },
+        waistband: { label: "腰头", name: "腰头", ids: ["waistband"] },
+        cuff: { label: "袖克夫", name: "袖克夫", ids: ["cuff"] },
+        label: { label: "领标", name: "领标", ids: [] },
+        unknown_panel: { label: "未识别", name: "未识别", ids: [] },
       };
       // 边缘语义：edge.role -> 语义库中文名
       const EDGE_SEMANTICS = {
-        side_seam_edge:      "侧缝线",
-        neckline_edge:       "领口线",
-        armhole_edge:        "袖窿线",
-        shoulder_edge:       "肩缝线",
-        hem_edge:            "下摆线",
-        sleeve_cap_edge:     "袖山线",
-        sleeve_underarm_edge:"袖底缝线",
-        sleeve_hem_edge:     "袖口线",
-        center_front_edge:   "前中线",
-        center_back_edge:    "后中线",
-        waist_edge:          "腰口线",
-        unknown_edge:        "未分类边",
+        side_seam_edge: "侧缝线",
+        neckline_edge: "领口线",
+        armhole_edge: "袖窿线",
+        shoulder_edge: "肩缝线",
+        hem_edge: "下摆线",
+        sleeve_cap_edge: "袖山线",
+        sleeve_underarm_edge: "袖底缝线",
+        sleeve_hem_edge: "袖口线",
+        center_front_edge: "前中线",
+        center_back_edge: "后中线",
+        waist_edge: "腰口线",
+        unknown_edge: "未分类边",
       };
       // 语义库完整版片语义（用于可能出现的 role 覆盖）
       const EXTRA_PANEL_SEMANTICS = {
-        left_front_bodice: "左前衣片", right_front_bodice: "右前衣片",
-        left_back_bodice: "左后衣片", right_back_bodice: "右后衣片",
-        front_yoke: "前育克", back_yoke: "后育克",
-        side_panel: "侧片", center_front_panel: "前中片", side_front_panel: "前侧片",
-        center_back_panel: "后中片", side_back_panel: "后侧片",
-        raglan_sleeve: "插肩袖", kimono_sleeve: "连身袖",
-        stand_collar: "立领", shirt_collar_upper: "衬衫上领", shirt_collar_stand: "衬衫领座",
-        hood_panel: "帽片", waistband: "腰头",
-        facing: "贴边", neck_facing: "领口贴边", armhole_facing: "袖窿贴边",
-        hem_facing: "下摆贴边", front_facing: "前门襟贴边",
-        pocket_bag: "口袋布", patch_pocket: "贴袋", flap: "袋盖",
-        belt_loop: "袢带", placket: "门襟片", binding_strip: "滚边条",
+        left_front_bodice: "左前衣片",
+        right_front_bodice: "右前衣片",
+        left_back_bodice: "左后衣片",
+        right_back_bodice: "右后衣片",
+        front_yoke: "前育克",
+        back_yoke: "后育克",
+        side_panel: "侧片",
+        center_front_panel: "前中片",
+        side_front_panel: "前侧片",
+        center_back_panel: "后中片",
+        side_back_panel: "后侧片",
+        raglan_sleeve: "插肩袖",
+        kimono_sleeve: "连身袖",
+        stand_collar: "立领",
+        shirt_collar_upper: "衬衫上领",
+        shirt_collar_stand: "衬衫领座",
+        hood_panel: "帽片",
+        waistband: "腰头",
+        facing: "贴边",
+        neck_facing: "领口贴边",
+        armhole_facing: "袖窿贴边",
+        hem_facing: "下摆贴边",
+        front_facing: "前门襟贴边",
+        pocket_bag: "口袋布",
+        patch_pocket: "贴袋",
+        flap: "袋盖",
+        belt_loop: "袢带",
+        placket: "门襟片",
+        binding_strip: "滚边条",
       };
       // 解析一个 role 的中文语义名
       function panelSemanticName(role) {
@@ -1378,6 +1971,18 @@
         if (PANEL_SEMANTICS[role]) return PANEL_SEMANTICS[role].name;
         if (EXTRA_PANEL_SEMANTICS[role]) return EXTRA_PANEL_SEMANTICS[role];
         return "";
+      }
+
+      // 裁片展示名：优先自定义名，其次语义库中文名，最后回退 panel_id
+      function panelDisplayName(p) {
+        const custom = String(p?.name ?? "").trim();
+        if (custom) return custom;
+        const role = p?.role && p.role !== "unknown_panel" ? p.role : "";
+        return panelSemanticName(role) || p?.panel_id || "";
+      }
+      // 某裁片是否设置了自定义名
+      function hasCustomPanelName(p) {
+        return !!(p && p.name && String(p.name).trim());
       }
 
       // 有效版片语义选项（供“裁片语义”编辑器下拉框使用）：
@@ -1406,81 +2011,107 @@
       // 一级为版片大类（大身/袖片/领片/下装/辅助版片），二级为该大类下的所有语义 role。
       // 供“裁片语义”编辑器的二级关联下拉框使用。
       const PANEL_SEMANTIC_CATEGORIES = [
-        { key: "bodice", name: "大身", items: [
-          { role: "front_bodice", name: "前衣片" },
-          { role: "left_front_bodice", name: "左前衣片" },
-          { role: "right_front_bodice", name: "右前衣片" },
-          { role: "back_bodice", name: "后衣片" },
-          { role: "left_back_bodice", name: "左后衣片" },
-          { role: "right_back_bodice", name: "右后衣片" },
-          { role: "front_yoke", name: "前育克" },
-          { role: "left_front_yoke", name: "左前育克" },
-          { role: "right_front_yoke", name: "右前育克" },
-          { role: "back_yoke", name: "后育克" },
-          { role: "side_panel", name: "侧片" },
-          { role: "left_side_panel", name: "左侧片" },
-          { role: "right_side_panel", name: "右侧片" },
-          { role: "center_front_panel", name: "前中片" },
-          { role: "side_front_panel", name: "前侧片" },
-          { role: "center_back_panel", name: "后中片" },
-          { role: "side_back_panel", name: "后侧片" },
-          { role: "front_hem", name: "前下摆" },
-          { role: "back_hem", name: "后下摆" },
-        ] },
-        { key: "sleeve", name: "袖片", items: [
-          { role: "sleeve", name: "袖片" },
-          { role: "raglan_sleeve", name: "插肩袖" },
-          { role: "kimono_sleeve", name: "连身袖" },
-          { role: "cuff", name: "袖克夫" },
-          { role: "sleeve_placket", name: "袖衩片" },
-          { role: "sleeve_facing", name: "袖口贴边" },
-        ] },
-        { key: "collar", name: "领片", items: [
-          { role: "collar", name: "领片" },
-          { role: "stand_collar", name: "立领" },
-          { role: "shirt_collar_upper", name: "衬衫上领" },
-          { role: "shirt_collar_stand", name: "衬衫领座" },
-          { role: "hood_panel", name: "帽片" },
-          { role: "left_hood_side_panel", name: "左帽侧片" },
-          { role: "right_hood_side_panel", name: "右帽侧片" },
-          { role: "hood_center_panel", name: "帽中片" },
-        ] },
-        { key: "bottom", name: "下装", items: [
-          { role: "front_pants", name: "前裤片" },
-          { role: "back_pants", name: "后裤片" },
-          { role: "left_front_pants", name: "左前裤片" },
-          { role: "right_front_pants", name: "右前裤片" },
-          { role: "left_back_pants", name: "左后裤片" },
-          { role: "right_back_pants", name: "右后裤片" },
-          { role: "waistband", name: "腰头" },
-          { role: "front_waistband", name: "前腰头" },
-          { role: "back_waistband", name: "后腰头" },
-          { role: "skirt_front", name: "前裙片" },
-          { role: "left_skirt_front", name: "左前裙片" },
-          { role: "right_skirt_front", name: "右前裙片" },
-          { role: "skirt_back", name: "后裙片" },
-          { role: "left_skirt_back", name: "左后裙片" },
-          { role: "right_skirt_back", name: "右后裙片" },
-          { role: "skirt_panel", name: "裙片" },
-          { role: "godet_panel", name: "插角片" },
-          { role: "fly_extension", name: "门襟延伸片" },
-          { role: "fly_shield", name: "里襟/门襟护片" },
-        ] },
-        { key: "aux", name: "辅助版片", items: [
-          { role: "facing", name: "贴边" },
-          { role: "neck_facing", name: "领口贴边" },
-          { role: "armhole_facing", name: "袖窿贴边" },
-          { role: "hem_facing", name: "下摆贴边" },
-          { role: "front_facing", name: "前门襟贴边" },
-          { role: "interfacing", name: "衬" },
-          { role: "pocket_bag", name: "口袋布" },
-          { role: "patch_pocket", name: "贴袋" },
-          { role: "flap", name: "袋盖" },
-          { role: "belt_loop", name: "袢带" },
-          { role: "placket", name: "门襟片" },
-          { role: "binding_strip", name: "滚边条" },
-          { role: "bias_binding", name: "斜裁滚条" },
-        ] },
+        {
+          // 未识别默认项：裁片未分配明确语义时默认归属此类别
+          key: "unknown",
+          name: "未识别",
+          items: [{ role: "unknown_panel", name: "未识别" }],
+        },
+        {
+          key: "bodice",
+          name: "大身",
+          items: [
+            { role: "front_bodice", name: "前衣片" },
+            { role: "left_front_bodice", name: "左前衣片" },
+            { role: "right_front_bodice", name: "右前衣片" },
+            { role: "back_bodice", name: "后衣片" },
+            { role: "left_back_bodice", name: "左后衣片" },
+            { role: "right_back_bodice", name: "右后衣片" },
+            { role: "front_yoke", name: "前育克" },
+            { role: "left_front_yoke", name: "左前育克" },
+            { role: "right_front_yoke", name: "右前育克" },
+            { role: "back_yoke", name: "后育克" },
+            { role: "side_panel", name: "侧片" },
+            { role: "left_side_panel", name: "左侧片" },
+            { role: "right_side_panel", name: "右侧片" },
+            { role: "center_front_panel", name: "前中片" },
+            { role: "side_front_panel", name: "前侧片" },
+            { role: "center_back_panel", name: "后中片" },
+            { role: "side_back_panel", name: "后侧片" },
+            { role: "front_hem", name: "前下摆" },
+            { role: "back_hem", name: "后下摆" },
+          ],
+        },
+        {
+          key: "sleeve",
+          name: "袖片",
+          items: [
+            { role: "sleeve", name: "袖片" },
+            { role: "raglan_sleeve", name: "插肩袖" },
+            { role: "kimono_sleeve", name: "连身袖" },
+            { role: "cuff", name: "袖克夫" },
+            { role: "sleeve_placket", name: "袖衩片" },
+            { role: "sleeve_facing", name: "袖口贴边" },
+          ],
+        },
+        {
+          key: "collar",
+          name: "领片",
+          items: [
+            { role: "collar", name: "领片" },
+            { role: "stand_collar", name: "立领" },
+            { role: "shirt_collar_upper", name: "衬衫上领" },
+            { role: "shirt_collar_stand", name: "衬衫领座" },
+            { role: "hood_panel", name: "帽片" },
+            { role: "left_hood_side_panel", name: "左帽侧片" },
+            { role: "right_hood_side_panel", name: "右帽侧片" },
+            { role: "hood_center_panel", name: "帽中片" },
+          ],
+        },
+        {
+          key: "bottom",
+          name: "下装",
+          items: [
+            { role: "front_pants", name: "前裤片" },
+            { role: "back_pants", name: "后裤片" },
+            { role: "left_front_pants", name: "左前裤片" },
+            { role: "right_front_pants", name: "右前裤片" },
+            { role: "left_back_pants", name: "左后裤片" },
+            { role: "right_back_pants", name: "右后裤片" },
+            { role: "waistband", name: "腰头" },
+            { role: "front_waistband", name: "前腰头" },
+            { role: "back_waistband", name: "后腰头" },
+            { role: "skirt_front", name: "前裙片" },
+            { role: "left_skirt_front", name: "左前裙片" },
+            { role: "right_skirt_front", name: "右前裙片" },
+            { role: "skirt_back", name: "后裙片" },
+            { role: "left_skirt_back", name: "左后裙片" },
+            { role: "right_skirt_back", name: "右后裙片" },
+            { role: "skirt_panel", name: "裙片" },
+            { role: "godet_panel", name: "插角片" },
+            { role: "fly_extension", name: "门襟延伸片" },
+            { role: "fly_shield", name: "里襟/门襟护片" },
+          ],
+        },
+        {
+          key: "aux",
+          name: "辅助版片",
+          items: [
+            { role: "facing", name: "贴边" },
+            { role: "neck_facing", name: "领口贴边" },
+            { role: "armhole_facing", name: "袖窿贴边" },
+            { role: "hem_facing", name: "下摆贴边" },
+            { role: "front_facing", name: "前门襟贴边" },
+            { role: "interfacing", name: "衬" },
+            { role: "pocket_bag", name: "口袋布" },
+            { role: "patch_pocket", name: "贴袋" },
+            { role: "flap", name: "袋盖" },
+            { role: "belt_loop", name: "袢带" },
+            { role: "placket", name: "门襟片" },
+            { role: "binding_strip", name: "滚边条" },
+            { role: "bias_binding", name: "斜裁滚条" },
+          ],
+        },
       ];
       // 在二级分类中查找 role 所属的一级大类；非语义库标准 role（如算法未识别值）返回 null
       function panelSemanticCategoryOf(role) {
@@ -1546,9 +2177,7 @@
         if (!garment || !garment.panels) return "";
         const panel = garment.panels.find((p) => p.panel_id === panelId);
         if (!panel) return "";
-        const g = edgeGroupsOfPanel(panel).find(
-          (x) => x.group_id === groupId,
-        );
+        const g = edgeGroupsOfPanel(panel).find((x) => x.group_id === groupId);
         return g ? g.role : "";
       }
       let seamFileName = "";
@@ -1558,8 +2187,21 @@
       let dragState = null;
       let worldBounds = { minX: 0, minY: 0, maxX: 1000, maxY: 800 };
       let baseScale = 1;
-      let svgW = 800, svgH = 600;
+      // 基准渲染比例（初次适配画布时的 baseScale*transform.k），用于让刀口长度字体
+      // 随画布大小成比例缩放：缩放因子 = baseScale / notchFitScale（k 由组变换自动处理）
+      let notchFitScale = 1;
+      let svgW = 800,
+        svgH = 600;
       const PAD = 50;
+
+      // 人工缝合端点：以屏幕像素为基准的期望尺寸（与画布缩放解耦）。
+      // 实际写入 SVG 的 r = （像素尺寸 / transform.k），因端点位于被 scale(transform.k)
+      // 缩放的 viewport 组内，需除以放大系数以抵消缩放，保持恒定视觉大小。
+      const EP_PX = 2.5; // 默认端点屏幕直径像素之半（缩小后的默认显示尺寸）
+      const EP_SEL_PX = 3.5; // 当前选中链端点屏幕尺寸之半
+      const EP_STROKE_RATIO = 0.4; // 白色外圈描边宽度 = r * 该比例，随内圈同步缩放
+      // 刀口长度字体在“适配画布”基准下的目标屏幕像素尺寸（越小字越小；随画布缩放）
+      const NOTCH_LABEL_PX = 6;
 
       // 人工缝合工具状态
       // 采用“多组边累积选择 + 一键多对多互缝”模型：
@@ -1758,8 +2400,10 @@
 
       // Liang-Barsky 线段-矩形相交测试
       function segRectHit(x1, y1, x2, y2, rx0, ry0, rx1, ry1) {
-        let t0 = 0, t1 = 1;
-        const dx = x2 - x1, dy = y2 - y1;
+        let t0 = 0,
+          t1 = 1;
+        const dx = x2 - x1,
+          dy = y2 - y1;
         const p = [-dx, dx, -dy, dy];
         const q = [x1 - rx0, rx1 - x1, y1 - ry0, ry1 - y1];
         for (let i = 0; i < 4; i++) {
@@ -1801,14 +2445,15 @@
             // 边包围盒快速剔除
             if (pts.length === 1) {
               const [px, py] = pts[0];
-              if (
-                px >= rx0 && px <= rx1 && py >= ry0 && py <= ry1
-              ) {
+              if (px >= rx0 && px <= rx1 && py >= ry0 && py <= ry1) {
                 hits.push({ edgeId: edge.edge_id, panelId: panel.panel_id });
               }
               continue;
             }
-            let eb0 = Infinity, eb1 = -Infinity, eb2 = Infinity, eb3 = -Infinity;
+            let eb0 = Infinity,
+              eb1 = -Infinity,
+              eb2 = Infinity,
+              eb3 = -Infinity;
             for (const [px, py] of pts) {
               if (px < eb0) eb0 = px;
               if (px > eb1) eb1 = px;
@@ -1819,8 +2464,14 @@
             for (let i = 0; i < pts.length - 1; i++) {
               if (
                 segRectHit(
-                  pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1],
-                  rx0, ry0, rx1, ry1,
+                  pts[i][0],
+                  pts[i][1],
+                  pts[i + 1][0],
+                  pts[i + 1][1],
+                  rx0,
+                  ry0,
+                  rx1,
+                  ry1,
                 )
               ) {
                 hits.push({ edgeId: edge.edge_id, panelId: panel.panel_id });
@@ -1869,9 +2520,7 @@
               const one = unvisited[0];
               // 转角判定
               if (
-                cornerDegree(
-                  ed.edge, adj.edgeData[one].edge, key,
-                ) > CORNER_DEG
+                cornerDegree(ed.edge, adj.edgeData[one].edge, key) > CORNER_DEG
               ) {
                 continue;
               }
@@ -1913,9 +2562,10 @@
           startKey = edgeData[startEdge].startKey;
         }
         let cur = startEdge;
-        let curEndKey = edgeData[startEdge].startKey === startKey
-          ? edgeData[startEdge].endKey
-          : edgeData[startEdge].startKey;
+        let curEndKey =
+          edgeData[startEdge].startKey === startKey
+            ? edgeData[startEdge].endKey
+            : edgeData[startEdge].startKey;
         let guard = 0;
         while (cur && guard++ < visited.size) {
           chain.push(cur);
@@ -1989,12 +2639,17 @@
         let cur = segStart;
         for (let i = 0; i < sel.edgeIds.length; i++) {
           const e = edgeData[sel.edgeIds[i]].edge;
-          const a = e.start_point, b = e.end_point;
+          const a = e.start_point,
+            b = e.end_point;
           // 判定边方向：远端即前进方向
           const distToA = Math.hypot(cur[0] - a[0], cur[1] - a[1]);
-          const nextP = distToA <= Math.hypot(cur[0] - b[0], cur[1] - b[1]) ? b : a;
+          const nextP =
+            distToA <= Math.hypot(cur[0] - b[0], cur[1] - b[1]) ? b : a;
           // 分割点是否在本边段内（含两端）
-          if (!midEdgeAccessed && segmentContains(splitPoint, cur, nextP, eps)) {
+          if (
+            !midEdgeAccessed &&
+            segmentContains(splitPoint, cur, nextP, eps)
+          ) {
             midEdgeAccessed = true;
             front.push(sel.edgeIds[i]);
             back.unshift(sel.edgeIds[i]); // 共享的分割边两端各属前/后
@@ -2021,7 +2676,14 @@
               groupIds.push(e.group_id);
             }
           }
-          return { panelId: sel.panelId, edgeIds, groupIds, startPoint: startPt.slice(), endPoint: endPt.slice(), length };
+          return {
+            panelId: sel.panelId,
+            edgeIds,
+            groupIds,
+            startPoint: startPt.slice(),
+            endPoint: endPt.slice(),
+            length,
+          };
         };
         // 前段：起点为链起点，终点为分割点；后段：起点为分割点，终点为链终点
         const frontSel = mk(front, segStart, frontEndPoint);
@@ -2031,13 +2693,16 @@
 
       // 点到线段的最小距离（世界坐标）
       function pointSegDist(p, a, b) {
-        const abx = b[0] - a[0], aby = b[1] - a[1];
-        const apx = p[0] - a[0], apy = p[1] - a[1];
+        const abx = b[0] - a[0],
+          aby = b[1] - a[1];
+        const apx = p[0] - a[0],
+          apy = p[1] - a[1];
         const len2 = abx * abx + aby * aby;
         if (len2 < 1e-9) return Math.hypot(apx, apy);
         let t = (apx * abx + apy * aby) / len2;
         t = Math.max(0, Math.min(1, t));
-        const cx = a[0] + t * abx, cy = a[1] + t * aby;
+        const cx = a[0] + t * abx,
+          cy = a[1] + t * aby;
         return Math.hypot(p[0] - cx, p[1] - cy);
       }
 
@@ -2060,7 +2725,10 @@
         let apex = null;
         let apexY = -Infinity;
         const collect = (p) => {
-          if (p && p[1] > apexY) { apexY = p[1]; apex = p; }
+          if (p && p[1] > apexY) {
+            apexY = p[1];
+            apex = p;
+          }
         };
         for (const eid of sel.edgeIds) {
           const e = edgeData[eid].edge;
@@ -2078,15 +2746,17 @@
       }
 
       // 计算两邻接边在共享顶点处的偏转角：沿路径前进方向，两段边的方向夹角。
-// 直线延展时夹角为 0°，出现拐弯则增大；据此判断是否构成"拐角"停界。
+      // 直线延展时夹角为 0°，出现拐弯则增大；据此判断是否构成"拐角"停界。
       function cornerDegree(e1, e2, sharedKey) {
         const otherOf = (e, key) =>
           keyPoint(e.start_point) === key ? e.end_point : e.start_point;
         const a = otherOf(e1, sharedKey); // e1 远离 sharedKey 的一端
         const b = otherOf(e2, sharedKey); // e2 远离 sharedKey 的一端
         const sh = sharedKey.split(",").map(Number);
-        let ax = sh[0] - a[0], ay = sh[1] - a[1]; // 进入共享点方向
-        let bx = b[0] - sh[0], by = b[1] - sh[1]; // 离开共享点方向
+        let ax = sh[0] - a[0],
+          ay = sh[1] - a[1]; // 进入共享点方向
+        let bx = b[0] - sh[0],
+          by = b[1] - sh[1]; // 离开共享点方向
         const la = Math.hypot(ax, ay) || 1;
         const lb = Math.hypot(bx, by) || 1;
         let cos = (ax * bx + ay * by) / (la * lb);
@@ -2101,6 +2771,21 @@
           "transform",
           `translate(${transform.x},${transform.y}) scale(${transform.k})`,
         );
+        refreshEndpointRadii();
+      }
+
+      // 画布缩放后按当前 transform.k 重算人工缝合端点半径，保持恒定屏幕像素大小。
+      // 端点位于被 scale(k) 缩放的组内，r =（目标像素 / k）；白色外圈描边随半径同比例更新。
+      function refreshEndpointRadii() {
+        document
+          .querySelectorAll(".manual-endpoint-sel")
+          .forEach((el) => {
+            const v =
+              el.getAttribute("data-sel") === "1" ? EP_SEL_PX : EP_PX;
+            const rIso = v / transform.k;
+            el.setAttribute("r", rIso.toFixed(3));
+            el.style.strokeWidth = (rIso * EP_STROKE_RATIO).toFixed(3) + "px";
+          });
       }
 
       function fitToCanvas() {
@@ -2108,6 +2793,7 @@
         transform.k = 0.92;
         transform.x = (svgW / 2) * (1 - transform.k);
         transform.y = (svgH / 2) * (1 - transform.k);
+        notchFitScale = baseScale * transform.k;
         updateTransform();
       }
 
@@ -2120,9 +2806,7 @@
           ? (seam?.stitches || []).find((s) => s.stitch_id === hoveredStitchId)
           : null;
         // 多对多：edge_sets 保存每条参与组边；无则回退兼容 a_edges/b_edges
-        const sideGroups = stitch
-          ? stitchSideEdgeGroups(stitch)
-          : [];
+        const sideGroups = stitch ? stitchSideEdgeGroups(stitch) : [];
         const aEdgeSet = new Set(sideGroups[0] || []);
         const bEdgeSet = new Set(sideGroups.slice(1).flat());
 
@@ -2143,7 +2827,9 @@
           );
           shape.dataset.panel = panel.panel_id;
           shape.style.cursor = "pointer";
+          // 常态下左键点选单个裁片（右键为平移画布，不触发选择）
           shape.onclick = (e) => {
+            if (e.button !== 0) return;
             e.stopPropagation();
             focusPanel(panel.panel_id);
           };
@@ -2169,7 +2855,7 @@
             }
           }
 
-          // 裁片名称标签：显示语义中文名 + panel_id（若启用了语义标签）
+          // 裁片名称标签：以标准裁片名（panel_id）为基准，语义/自定义语义作为补充（若启用了语义标签）
           if (showLabels && panelCentroids[panel.panel_id]) {
             const [cx, cy] = toSvg(panelCentroids[panel.panel_id]);
             const label = document.createElementNS(ns, "text");
@@ -2179,23 +2865,40 @@
             const role =
               panel.role && panel.role !== "unknown_panel" ? panel.role : "";
             const semName = panelSemanticName(role); // 语义库中文名
+            const hasCustom = hasCustomPanelName(panel);
             // SVG text doesn't support \n, use tspan
             label.textContent = "";
             const tspan1 = document.createElementNS(ns, "tspan");
             tspan1.setAttribute("x", cx);
             tspan1.setAttribute("dy", "-0.3em");
-            tspan1.textContent = semName ? semName : panel.panel_id;
-            tspan1.style.fontSize = semName ? "12px" : "11px";
-            label.appendChild(tspan1);
-            if (semName) {
-              // 副行：panel_id · role（小字补充，不喧宾夺主）
-              const tspan0 = document.createElementNS(ns, "tspan");
-              tspan0.setAttribute("x", cx);
-              tspan0.setAttribute("dy", "1.15em");
-              tspan0.textContent = role ? `${panel.panel_id}・${role}` : panel.panel_id;
-              tspan0.style.fontSize = "9px";
-              tspan0.style.fontWeight = "400";
+            const tspan0 = document.createElementNS(ns, "tspan");
+            tspan0.setAttribute("x", cx);
+            tspan0.setAttribute("dy", "1.15em");
+            tspan0.style.fontSize = "7.5px";
+            tspan0.style.fontWeight = "400";
+            if (hasCustom) {
+              // 主行黑体=自定义语义名（关联并响应自定义语义修改）；副行始终显示原始编号・semantic_id
+              tspan1.textContent = panel.name;
+              tspan1.style.fontSize = "9px";
+              label.appendChild(tspan1);
+              tspan0.textContent = role
+                ? `${panel.panel_id}・${role}`
+                : panel.panel_id;
               label.appendChild(tspan0);
+            } else if (semName) {
+              // 语义库中文名为主行，panel_id/role 为副行补充
+              tspan1.textContent = semName;
+              tspan1.style.fontSize = "10px";
+              label.appendChild(tspan1);
+              tspan0.textContent = role
+                ? `${panel.panel_id}・${role}`
+                : panel.panel_id;
+              label.appendChild(tspan0);
+            } else {
+              // 无语义：仅显示标准裁片名 panel_id
+              tspan1.textContent = panel.panel_id;
+              tspan1.style.fontSize = "9px";
+              label.appendChild(tspan1);
             }
             viewport.appendChild(label);
           }
@@ -2219,6 +2922,133 @@
               );
               etag.textContent = sname;
               viewport.appendChild(etag);
+            }
+          }
+
+          // 领片刀口标记（来自 panel.notches / notch_reference / notch_midpoint，
+          // 源为 auto-annotator 自动计算）。同时显示上领下边中点、下领上边中点两个
+          // 中点，以及两个刀口位置与"中点→对应刀口"的距离测量线。
+          if (showNotches) {
+            const outline = geometry[panel.panel_id] || [];
+
+            // 上领下边中点（来自 notch_reference.midpoint）
+            const nr = panel.notch_reference;
+            if (nr && nr.midpoint && nr.midpoint.length === 2) {
+              const sp = toSvg(nr.midpoint);
+              const mk = document.createElementNS(ns, "circle");
+              mk.setAttribute("cx", sp[0]);
+              mk.setAttribute("cy", sp[1]);
+              mk.setAttribute("r", 3);
+              mk.setAttribute("class", "notch-midpoint upper");
+              mk.setAttribute("title", `上领下边中点 · 距刀口 ${nr.length_l}mm`);
+              viewport.appendChild(mk);
+            }
+
+            // 下领上边中点
+            const lm = panel.notch_midpoint;
+            const hasMid = lm && lm.length === 2;
+            if (hasMid) {
+              const sp = toSvg(lm);
+              const mk = document.createElementNS(ns, "circle");
+              mk.setAttribute("cx", sp[0]);
+              mk.setAttribute("cy", sp[1]);
+              mk.setAttribute("r", 2.5);
+              mk.setAttribute("class", "notch-midpoint");
+              mk.setAttribute("title", "下领上边中点");
+              viewport.appendChild(mk);
+            }
+
+            for (const n of panel.notches || []) {
+              if (!n.point || n.point.length !== 2) continue;
+              const sp = toSvg([n.point[0], n.point[1]]);
+              let nx = 0, ny = -1; // 默认法向（向上）
+              if (outline.length >= 3) {
+                // 以轮廓上离刀口点最近的顶点估算局部切线，法向为其垂线
+                let bi = 0, bd = Infinity;
+                const px = n.point[0], py = n.point[1];
+                for (let i = 0; i < outline.length; i++) {
+                  const dx = outline[i][0] - px, dy = outline[i][1] - py;
+                  const d = dx * dx + dy * dy;
+                  if (d < bd) { bd = d; bi = i; }
+                }
+                const a = toSvg(outline[(bi - 1 + outline.length) % outline.length]);
+                const c = toSvg(outline[(bi + 1) % outline.length]);
+                let tx = c[0] - a[0], ty = c[1] - a[1];
+                const tn = Math.hypot(tx, ty) || 1;
+                tx /= tn; ty /= tn;
+                nx = -ty; ny = tx; // 垂直于切线的法向
+              }
+              const L = 2.5; // 方口标记半长（像素）：总长约 5px ≈ 线条粗细(2px)的 2.5 倍
+              const bar = document.createElementNS(ns, "line");
+              bar.setAttribute("x1", sp[0] - nx * L);
+              bar.setAttribute("y1", sp[1] - ny * L);
+              bar.setAttribute("x2", sp[0] + nx * L);
+              bar.setAttribute("y2", sp[1] + ny * L);
+              bar.setAttribute("class", "notch-line");
+              bar.setAttribute("title", `${n.notch_id} · 距中点 ${n.distance_from_mid}mm · ${n.side}`);
+              viewport.appendChild(bar);
+
+              // 中点 → 刀口 距离测量线：优先用后端 path_points（沿下领轮廓的顶点序列，
+              // 保证完全贴合缝线），缺失时回退到按 outline 重构的折线。
+              if (hasMid && outline.length >= 3) {
+                let pick;
+                if (Array.isArray(n.path_points) && n.path_points.length >= 2) {
+                  pick = n.path_points.map((p) => [p[0], p[1]]);
+                } else {
+                  let iM = 0, iN = 0, dM = Infinity, dN = Infinity;
+                  for (let i = 0; i < outline.length; i++) {
+                    const d1 = (outline[i][0] - lm[0]) ** 2 + (outline[i][1] - lm[1]) ** 2;
+                    if (d1 < dM) { dM = d1; iM = i; }
+                    const d2 = (outline[i][0] - n.point[0]) ** 2 + (outline[i][1] - n.point[1]) ** 2;
+                    if (d2 < dN) { dN = d2; iN = i; }
+                  }
+                  const worldLen = (pts) => {
+                    let s = 0;
+                    for (let i = 1; i < pts.length; i++)
+                      s += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+                    return s;
+                  };
+                  const between = (i, j) => {
+                    const r = [];
+                    if (i <= j) { for (let k = i; k <= j; k++) r.push(outline[k]); }
+                    else {
+                      for (let k = i; k < outline.length; k++) r.push(outline[k]);
+                      for (let k = 0; k <= j; k++) r.push(outline[k]);
+                    }
+                    return r;
+                  };
+                  const pa = between(iM, iN), pb = between(iN, iM);
+                  pick = (Math.abs(worldLen(pa) - n.distance_from_mid)
+                          <= Math.abs(worldLen(pb) - n.distance_from_mid)) ? pa : pb;
+                  if (pick.length >= 2) {
+                    pick[0] = [lm[0], lm[1]];
+                    pick[pick.length - 1] = [n.point[0], n.point[1]];
+                  }
+                }
+                if (pick && pick.length >= 2) {
+                  const seg = document.createElementNS(ns, "path");
+                  seg.setAttribute("d", pathD(pick, false));
+                  seg.setAttribute("class", "notch-measure");
+                  seg.setAttribute("vector-effect", "non-scaling-stroke");
+                  viewport.appendChild(seg);
+                  // 标签取折线中点顶点，随缝线移动
+                  const midK = pick[Math.floor(pick.length / 2)];
+                  const mLab = toSvg(midK);
+                  const lab = document.createElementNS(ns, "text");
+                  lab.setAttribute("x", mLab[0]);
+                  lab.setAttribute("y", mLab[1] - 6);
+                  lab.setAttribute("class", "notch-measure-label");
+                  // 字号随画布成比例缩放：基准适配下为 NOTCH_LABEL_PX 屏幕像素，
+                  // baseScale 随窗口/画布尺寸变化、transform.k 随缩放变化，两者共同驱动字体大小
+                  lab.style.fontSize =
+                    (
+                      (NOTCH_LABEL_PX * baseScale) /
+                      notchFitScale
+                    ).toFixed(2) + "px";
+                  lab.textContent = `${Number(n.distance_from_mid).toFixed(1)}mm`;
+                  viewport.appendChild(lab);
+                }
+              }
             }
           }
         }
@@ -2290,13 +3120,18 @@
             path.dataset.edgeId = eid;
             viewport.appendChild(path);
           }
-          // 端点标记（两端各一，使用组边颜色）
+          // 端点标记（两端各一，使用组边颜色）；尺寸随缩放自适应，保持恒定屏幕像素
           for (const p of [sel.startPoint, sel.endPoint]) {
             const [cx, cy] = toSvg(p);
+            const isSel = idx === manualMode.selectedIdx;
             const dot = document.createElementNS(ns, "circle");
             dot.setAttribute("cx", cx);
             dot.setAttribute("cy", cy);
-            dot.setAttribute("r", idx === manualMode.selectedIdx ? "5" : "4");
+            dot.setAttribute("data-sel", isSel ? "1" : "0");
+            const rIso = (isSel ? EP_SEL_PX : EP_PX) / transform.k;
+            dot.setAttribute("r", rIso.toFixed(3));
+            // 白色外圈描边随内圈半径按比例同步缩放，保持两者相对视觉关系
+            dot.style.strokeWidth = (rIso * EP_STROKE_RATIO).toFixed(3) + "px";
             dot.setAttribute("class", "manual-endpoint-sel");
             dot.setAttribute("fill", color);
             viewport.appendChild(dot);
@@ -2306,9 +3141,13 @@
 
       // ============ 交互 ============
       function focusPanel(panelId) {
+        // 切换/取消聚焦裁片即视为“进行其它操作而未保存”，丢弃当前临时（pending）修改
+        pendingEdits.clear();
         if (focusedPanelId === panelId) {
           focusedPanelId = null;
         } else {
+          // 打开裁片语义编辑栏时自动退出人工缝合模式，保证两功能互斥
+          if (manualMode && manualMode.active) manualExit();
           focusedPanelId = panelId;
         }
         renderAll();
@@ -2351,12 +3190,14 @@
           .map((p) => {
             const role = p.role || "unknown";
             const semName = panelSemanticName(p.role); // 语义库中文名
+            const displayName = panelDisplayName(p); // 自定义名 > 语义名 > panel_id
+            const hasCustom = hasCustomPanelName(p);
             const area = p.area ? Number(p.area).toFixed(0) : "?";
             const vis = !hiddenPanels.has(p.panel_id);
             return `<div class="list-item${focusedPanelId === p.panel_id ? " active" : ""}" data-panel="${esc(p.panel_id)}">
       <span class="swatch ${esc(p.review_status || "pending_review")}"></span>
       <span class="item-info">
-        <span class="item-title">${esc(p.panel_id)}${semName ? `<em class="item-sem">${esc(semName)}</em>` : ""}</span>
+        <span class="item-title">${esc(p.panel_id)}${hasCustom ? `<em class="item-sem">✎ ${esc(displayName)}</em>` : semName ? `<em class="item-sem">${esc(semName)}</em>` : ""}</span>
         <span class="item-sub">${esc(role)} · ${area} mm²</span>
       </span>
       <span class="item-meta">${p.edges?.length || 0} 边</span>
@@ -2391,29 +3232,52 @@
         });
       }
 
+      // ============ 右侧功能栏（按需显示，同一时间仅显示一个模块） ============
+      const drawer = $("#rightDrawer");
+      const drawerSections = {
+        msp: $("#mspSection"),
+        pse: $("#pseSection"),
+      };
+      // 当前屏幕右侧展示的功能模块：null | 'msp' | 'pse'
+      let rightPanelKey = null;
+      // 显示指定功能编辑栏；key 传 null 则整体隐藏侧栏（回收其占用的空间）
+      function setRightPanel(key) {
+        key = key || null;
+        if (key !== "msp" && key !== "pse") key = null;
+        rightPanelKey = key;
+        for (const k in drawerSections) {
+          drawerSections[k].classList.toggle("active", k === key);
+        }
+        drawer.classList.toggle("open", key !== null);
+      }
+
       // ============ 裁片语义编辑 ============
-      // 点击裁片列表的 item 时，在右侧面板展示选中裁片的当前语义；
+      // 点击裁片列表的 item 时，在右侧抽屉展示选中裁片的当前语义；
       // 提供下拉框编辑 role，改动即实时预览，保存则输出 Garment JSON 持久化。
-      const panelSemPanel = $("#panelSemPanel");
       const panelSemEditor = $("#panelSemEditor");
       function renderPanelSemEditor() {
         if (!garment || !garment.panels || !focusedPanelId) {
-          panelSemPanel.classList.remove("show");
+          // 无选中裁片：仅当当前展示的就是“裁片语义”时才隐藏侧栏，避免误关其它模块
+          if (rightPanelKey === "pse") setRightPanel(null);
           return;
         }
-        const panel = garment.panels.find(
-          (p) => p.panel_id === focusedPanelId,
-        );
+        const panel = garment.panels.find((p) => p.panel_id === focusedPanelId);
         if (!panel) {
-          panelSemPanel.classList.remove("show");
+          if (rightPanelKey === "pse") setRightPanel(null);
           return;
         }
-        panelSemPanel.classList.add("show");
+        setRightPanel("pse");
         updateDirtyBadge(); // 同步头部“未保存”徽标
-        const role = panel.role || "unknown_panel";
-        const curName = panelSemanticName(role);
-        // 二级关联下拉：确定当前 role 所属一级大类；非标准 role 归入“未分类”
-        const activeCat = panelSemanticCategoryOf(role);
+        // 有效语义：优先取未提交（pending）的临时值，否则回落到裁片当前已保存值。
+        // 语义类别与自定义语义在 role/name 维度互斥：选类别即清空自定义，输自定义即清空类别下拉。
+        const pending = pendingEdits.get(panel.panel_id) || {};
+        const effRole = (pending.role !== undefined ? pending.role : panel.role) || "";
+        const effName =
+          pending.name !== undefined ? pending.name : String(panel.name || "");
+        const role = effRole || "unknown_panel"; // 语义类别逻辑仍用 role 逻辑名
+        const curName = panelSemanticName(effRole);
+        // 二级关联下拉：确定当前 role 所属一级大类；非标准 role 归入“自定义类”
+        const activeCat = panelSemanticCategoryOf(effRole);
         const isNonStd = !activeCat;
         const selCatKey = activeCat ? activeCat.key : "__other__";
         const catOptions =
@@ -2425,11 +3289,14 @@
           ).join("") +
           `<option value="__other__"${
             selCatKey === "__other__" ? " selected" : ""
-          }>未分类</option>`;
+          }>自定义类</option>`;
         // 二级下拉：列出所选一级大类下的所有子类别；非标准 role 仅保留当前项，避免数据丢失
         const items4Cat = (key) => {
-          if (key === "__other__")
-            return isNonStd ? [{ role, name: curName || role }] : [];
+          if (key === "__other__") {
+            // 非标准 role（含自定义语义）归入“自定义类”：中文语义取用户输入的自定义文本，缺失时回退到语义库名/role
+            const cn = String(effName || "").trim() || curName || effRole;
+            return isNonStd ? [{ role: effRole, name: cn }] : [];
+          }
           const c = PANEL_SEMANTIC_CATEGORIES.find((x) => x.key === key);
           return c ? c.items : [];
         };
@@ -2440,94 +3307,384 @@
             .map(
               (i) =>
                 `<option value="${esc(i.role)}"${
-                  i.role === role ? " selected" : ""
+                  i.role === effRole ? " selected" : ""
                 }>${esc(i.name)}（${esc(i.role)}）</option>`,
             )
             .join("");
+        const customMode = String(effName || "").trim() !== "";
         panelSemEditor.innerHTML = `
           <div class="pse-current">
-            <div class="item-title" title="${esc(panel.panel_id)}">${esc(panel.panel_id)}</div>
-            <div class="pse-role">当前 role：${esc(role)}</div>
+            <div class="item-title" title="${esc(panel.panel_id)}">${esc(panelDisplayName(panel))}</div>
+            <div class="pse-role">当前 role：${esc(effRole || "unknown_panel")}</div>
             ${curName ? `<div class="pse-preview">语义：<span class="item-sem">${esc(curName)}</span></div>` : ""}
           </div>
           <div class="pse-field">
             <label>语义类别</label>
             <div class="pse-cats">
-              <select class="pse-select" id="panelSemCatSelect">${catOptions}</select>
-              <select class="pse-select" id="panelSemSubSelect">${subOptions}</select>
+              <select class="pse-select" id="panelSemCatSelect"${customMode ? " disabled" : ""}>${catOptions}</select>
+              <select class="pse-select" id="panelSemSubSelect"${customMode ? " disabled" : ""}>${subOptions}</select>
             </div>
+            <div class="pse-name-error" id="catSemError"></div>
           </div>
           <div class="pse-field">
-            <label>实时预览</label>
-            <div class="pse-preview" id="panelSemPreview">${esc(curName || role)}</div>
+            <div class="pse-label-row">
+              <span class="pse-title">自定义语义</span>
+              <label class="vis-switch" title="启用自定义语义将关闭语义类别选择（默认关闭）；需同时填写中文语义与 semantic_id">
+                <input type="checkbox" id="customModeToggle" class="vis-chk"${customMode ? " checked" : ""} />
+                <span class="vis-slider"></span>
+              </label>
+            </div>
+            <input class="pse-name-input" id="customCnInput" type="text" placeholder="中文语义，如：前下摆" value=""${customMode ? "" : " disabled"} />
+            <input class="pse-name-input" id="customSidInput" type="text" placeholder="semantic_id，如：front_hem" value="" style="margin-top:6px"${customMode ? "" : " disabled"} />
+            <div class="pse-name-error" id="customSemError"></div>
+            <div class="pse-sem-hint" id="pseModeHint">${customMode ? "自定义语义模式下，请同时填写中文语义与 semantic_id 后再临时保存。" : "语义类别模式下，请选择语义类别并完成最末级子类别选择后再临时保存。"}</div>
           </div>
           <div class="pse-actions">
-            <button type="button" class="btn" id="pseResetBtn" title="撤销当前裁片最近一次语义修改">撤销</button>
-            <button type="button" class="btn primary" id="pseTempBtn" title="将修改中的语义临时保存（本地草稿，刷新不丢失）">临时保存</button>
+            <button type="button" class="btn" id="pseUndoBtn" title="撤销：逐步回退最近一次已保存的裁片语义修改（循环操作历史）">撤销</button>
+            <button type="button" class="btn" id="pseResetBtn" title="重置：清除所有编辑操作，将全部裁片语义恢复为初始加载状态（不可撤销）">重置</button>
+          </div>
+          <div class="pse-actions">
+            <button type="button" class="btn primary" id="pseTempBtn" title="将未保存的语义/自定义修改临时保存（本地草稿）">临时保存</button>
           </div>`;
         const catSel = $("#panelSemCatSelect");
         const subSel = $("#panelSemSubSelect");
-        // 把修改后的 role 写入裁片、同步草稿与临时保存、更新“未保存”徽标
-        const applyPanelRole = (panel, v) => {
-          panel.role = v;
-          const orig = panelOriginalRoleMap.has(panel.panel_id)
-            ? panelOriginalRoleMap.get(panel.panel_id)
-            : panel.role;
-          if (panel.role !== orig) draftRoles.set(panel.panel_id, panel.role);
-          else draftRoles.delete(panel.panel_id);
-          persistDraft();
+        const customCn = $("#customCnInput");
+        const customSid = $("#customSidInput");
+        const customSemError = $("#customSemError");
+        const catSemError = $("#catSemError");
+        const modeToggle = $("#customModeToggle");
+        const pseModeHint = $("#pseModeHint");
+        const pseTempBtn = $("#pseTempBtn");
+        // 把已提交的 role/name 草稿同步到 localStorage 并刷新“未保存”徽标
+        const refreshDirty = () => {
+          if (!(draftRoles.size || draftNames.size)) clearDraft();
+          else persistDraft();
           updateDirtyBadge();
         };
-        // 一级大类切换：仅重载二级子类别，不提交修改
+        // 清除全部报红与错误提示。界面默认不做实时报红，仅在点击“临时保存”时按校验结果显示。
+        const clearFieldError = () => {
+          customCn.classList.remove("invalid");
+          customSid.classList.remove("invalid");
+          catSel.classList.remove("invalid");
+          subSel.classList.remove("invalid");
+          customSemError.textContent = "";
+          catSemError.textContent = "";
+        };
+        // 一级大类切换：仅重载二级子类别，不改写临时状态
         catSel.onchange = () => {
           const key = catSel.value;
+          const items = items4Cat(key);
           subSel.innerHTML =
             `<option value="">请选择子类别…</option>` +
-            items4Cat(key)
+            items
               .map(
                 (i) =>
                   `<option value="${esc(i.role)}">${esc(i.name)}（${esc(i.role)}）</option>`,
               )
               .join("");
           // 二级下拉若无可用子类别选项则禁用，避免选择空值
-          subSel.disabled = items4Cat(key).length === 0;
+          subSel.disabled = items.length === 0;
+          clearFieldError();
         };
-        // 二级子类别选择：提交语义修改，写回裁片、同步草稿及“未保存”徽标
+        // 二级子类别选择：仅写入临时 pending，未点「临时保存」不写入 panel / 草稿 / 修改记录。
+        // 选类别即清空自定义语义（name 置空），保证与自定义互斥。
         subSel.onchange = () => {
           const v = subSel.value;
-          if (!v) return; // 未选择有效子类别
-          if (v === panel.role) return;
-          // 记录修改前的旧值到撤销栈，用于“撤销”取消当前操作
-          semEditHistory.push({ panelId: panel.panel_id, role: panel.role });
-          applyPanelRole(panel, v);
-          // 实时预览：重绘编辑栏（同步“当前 role / 语义”摘要），并刷新侧栏列表与画布标签
+          if (!v) return;
+          pendingEdits.set(panel.panel_id, { role: v, name: "" });
+          renderPanelSemEditor(); // 重绘编辑栏（同步“当前 role / 语义”摘要、禁用态与校验状态）
+          updateUnsavedBadge();
+        };
+        // 自定义语义：中文语义输入（写入临时 name，不影响已有 role）
+        customCn.addEventListener("input", () => {
+          const prev = pendingEdits.get(panel.panel_id) || {};
+          pendingEdits.set(panel.panel_id, {
+            role: prev.role !== undefined ? prev.role : (panel.role || ""),
+            name: customCn.value,
+          });
+          clearFieldError();
+          updateUnsavedBadge();
+        });
+        // 自定义语义：semantic_id 输入（写入临时 role）；输入非标准值即清空类别下拉
+        customSid.addEventListener("input", () => {
+          const prev = pendingEdits.get(panel.panel_id) || {};
+          const v = customSid.value.trim();
+          pendingEdits.set(panel.panel_id, {
+            role: v,
+            name: prev.name !== undefined ? prev.name : String(panel.name || ""),
+          });
+          // 输自定义即清类别：若当前值不在二级选项中则回落到占位“请选择子类别…”
+          if (v && ![...subSel.options].some((o) => o.value === v)) subSel.value = "";
+          clearFieldError();
+          updateUnsavedBadge();
+        });
+        // 自定义语义模式开关：每次切换都同时重置“语义类别”与“自定义语义内容”为初始（已保存）状态
+        modeToggle.addEventListener("change", () => {
+          const on = modeToggle.checked;
+          catSel.disabled = on;
+          customCn.disabled = !on;
+          customSid.disabled = !on;
+          // 丢弃全部未保存编辑，恢复 panel 已保存的初始语义
+          pendingEdits.delete(panel.panel_id);
+          customCn.value = "";
+          customSid.value = "";
+          const curRole = panel.role || "";
+          const cat = panelSemanticCategoryOf(curRole);
+          const ck = curRole && cat ? cat.key : "__other__";
+          if ([...catSel.options].some((o) => o.value === ck)) catSel.value = ck;
+          else catSel.value = "__other__";
+          const items = items4Cat(catSel.value);
+          subSel.innerHTML =
+            `<option value="">请选择子类别…</option>` +
+            items
+              .map(
+                (i) =>
+                  `<option value="${esc(i.role)}"${i.role === curRole ? " selected" : ""}>${esc(i.name)}（${esc(i.role)}）</option>`,
+              )
+              .join("");
+          subSel.disabled = on || items.length === 0;
+          pseModeHint.textContent = on
+            ? "自定义语义模式下，请同时填写中文语义与 semantic_id 后再临时保存。"
+            : "语义类别模式下，请选择语义类别并完成最末级子类别选择后再临时保存。";
+          clearFieldError();
+          updateUnsavedBadge();
+        });
+        // “临时保存”按钮始终可点；按下时才按当前模式校验（见 pseTempBtn 处理器）
+        // 撤销：从撤销栈中逐步回退最近一次针对当前裁片的修改，恢复其旧的 role 与自定义名
+          $("#pseUndoBtn").onclick = () => {
+            if (pendingEdits.has(panel.panel_id)) {
+              pendingEdits.delete(panel.panel_id);
+              renderPanelSemEditor();
+              updateUnsavedBadge();
+              toast("未保存修改已撤销，编辑栏回到已保存状态");
+              return;
+            }
+            let i = semEditHistory.length - 1;
+            while (i >= 0 && semEditHistory[i].panelId !== panel.panel_id) i--;
+            if (i < 0) {
+              toast("当前裁片没有可撤销的修改");
+              return;
+            }
+            const e = semEditHistory.splice(i, 1)[0];
+          // 记录撤销前状态，用于写“撤销”修改记录
+          const hBefore = { role: panel.role || "", name: String(panel.name || "") };
+          // 恢复 role
+          panel.role = e.roleBefore || "";
+          const orole = panelOriginalRoleMap.get(panel.panel_id);
+          if (panel.role !== orole) draftRoles.set(panel.panel_id, panel.role);
+          else draftRoles.delete(panel.panel_id);
+          // 恢复自定义名
+          panel.name = e.nameBefore || "";
+          const oname = panelOriginalNameMap.get(panel.panel_id);
+          if (String(panel.name) !== String(oname))
+            draftNames.set(panel.panel_id, panel.name);
+          else draftNames.delete(panel.panel_id);
+          refreshDirty();
+          // 写撤销修改记录（对比撤销前后的差异）
+          {
+            const after = { role: panel.role || "", name: String(panel.name || "") };
+            const diff = [];
+            if (String(hBefore.role || "") !== String(after.role))
+              diff.push({ field: "语义 role", from: hBefore.role || "", to: after.role });
+            if (String(hBefore.name || "") !== String(after.name))
+              diff.push({ field: "裁片名 name", from: hBefore.name || "", to: after.name });
+            if (diff.length)
+              pushHistory(
+                makeHistoryEntry(
+                  "panel",
+                  "撤销修改",
+                  panel.panel_id,
+                  hBefore,
+                  after,
+                  diff,
+                  `[${panel.panel_id}] 撤销：` +
+                    diff
+                      .map((d) => `${d.field}: ${d.from || "无"} → ${d.to || "无"}`)
+                      .join("；"),
+                ),
+              );
+          }
+          renderPanelSemEditor(); // 重新渲染编辑栏，反映回退后的 role / 自定义名
+          renderPanelList();
+          renderCanvas();
+          const label =
+            e.nameBefore || panelSemanticName(panel.role) || panel.panel_id;
+          toast(`已撤销，当前裁片名：${label}`);
+        };
+        // 重置：仅对当前选中裁片生效，恢复其初始语义，不影响其他裁片
+          $("#pseResetBtn").onclick = () => {
+            if (!garment) return;
+            const pid = focusedPanelId;
+            const p = pid && garment.panels.find((x) => x.panel_id === pid);
+            if (!pid || !p) {
+              toast("请先选择要重置的裁片");
+              return;
+            }
+            const orole = panelOriginalRoleMap.has(pid)
+              ? panelOriginalRoleMap.get(pid)
+              : "";
+            const oname = panelOriginalNameMap.has(pid)
+              ? String(panelOriginalNameMap.get(pid))
+              : "";
+            const hasChange =
+              String(p.role || "") !== String(orole) ||
+              String(p.name || "") !== String(oname) ||
+              pendingEdits.has(pid) ||
+              draftRoles.has(pid) ||
+              draftNames.has(pid) ||
+              semEditHistory.some((h) => h.panelId === pid);
+            if (!hasChange) {
+              toast("该裁片没有需要重置的编辑");
+              return;
+            }
+            openConfirmModal(
+              "重置语义编辑",
+              `确定要重置裁片 ${pid} 吗？\n这会清除该裁片的编辑操作与未保存修改，并将其语义恢复为初始加载状态。\n不会影响其他裁片。此操作不可撤销，是否继续？`,
+              () => {
+                if (!p) return;
+                const roleFrom = p.role || "";
+                const nameFrom = String(p.name || "");
+                const roleChanged = roleFrom !== orole;
+                const nameChanged = nameFrom !== oname;
+                p.role = orole;
+                p.name = oname;
+                // 仅清除当前裁片的草稿与未保存临时修改，其余裁片草稿保留
+                draftRoles.delete(pid);
+                draftNames.delete(pid);
+                pendingEdits.delete(pid);
+                // 从撤销栈移除该裁片的条目
+                semEditHistory = semEditHistory.filter((h) => h.panelId !== pid);
+                persistDraft(); // 按剩余草稿重写 localStorage，不清空其他裁片
+                // 写当前裁片的“重置”修改记录
+                if (roleChanged || nameChanged) {
+                  const before = { role: roleFrom, name: nameFrom };
+                  const after = { role: orole, name: oname };
+                  const diff = [];
+                  if (String(roleFrom) !== String(orole))
+                    diff.push({ field: "语义 role", from: roleFrom, to: orole });
+                  if (nameFrom !== oname)
+                    diff.push({ field: "裁片名 name", from: nameFrom, to: oname });
+                  pushHistory(
+                    makeHistoryEntry(
+                      "panel",
+                      "重置",
+                      pid,
+                      before,
+                      after,
+                      diff,
+                      `[${pid}] 重置回初始语义`,
+                    ),
+                  );
+                }
+                renderAll();
+                renderSidebarHistory();
+                updateDirtyBadge();
+                updateUnsavedBadge();
+                toast(
+                  roleChanged || nameChanged
+                    ? `已重置裁片 ${pid} 语义至初始加载状态`
+                    : "该裁片已处于初始状态，无需重置",
+                );
+              },
+              { confirmText: "确认重置", confirmClass: "primary" },
+            );
+          };
+        $("#pseTempBtn").onclick = () => {
+          // 按下时按当前生效模式校验：校验通过才执行保存；未通过则显示报红与错误提示
+          clearFieldError();
+          if (modeToggle.checked) {
+            const cn = customCn.value.trim();
+            const sid = customSid.value.trim();
+            const cnOk = cn !== "";
+            const sidOk = /^[a-zA-Z0-9_]+$/.test(sid);
+            if (!cnOk) customCn.classList.add("invalid");
+            if (!sidOk) customSid.classList.add("invalid");
+            if (!(cnOk && sidOk)) {
+              customSemError.textContent = !cnOk && !sidOk
+                ? "请填写中文语义与有效的 semantic_id（字母、数字、下划线）"
+                : !cnOk
+                  ? "请填写中文语义"
+                  : "semantic_id 仅支持字母、数字、下划线";
+              toast("请先完成自定义语义填写后再临时保存");
+              return;
+            }
+          } else if (!subSel.value) {
+            catSel.classList.add("invalid");
+            subSel.classList.add("invalid");
+            catSemError.textContent = "请选择语义类别并完成最末级子类别选择后再临时保存";
+            toast("请先完成语义类别子类别选择后再临时保存");
+            return;
+          }
+          // 无临时修改时的兜底：若已有已提交的草稿则仅刷新本地草稿，避免误报
+          if (!pendingEdits.size) {
+            const n = dirtyPanelCount();
+            if (!n) {
+              toast("没有待临时保存的修改");
+              return;
+            }
+            refreshDirty();
+            toast(`已临时保存 ${n} 个已提交的修改（本地草稿）`);
+            return;
+          }
+          // 提交所有临时（pending）修改到 panel：写回 role/name、草稿、撤销栈与修改记录
+          let committed = 0;
+          for (const [pid, pend] of [...pendingEdits.entries()]) {
+            const p = garment.panels.find((x) => x.panel_id === pid);
+            if (!p) {
+              pendingEdits.delete(pid);
+              continue;
+            }
+            const hBefore = { role: p.role || "", name: String(p.name || "") };
+            let dirtyRole = false;
+            let dirtyName = false;
+            if (pend.role !== undefined && String(pend.role) !== String(p.role || "")) {
+              p.role = pend.role;
+              const orole = panelOriginalRoleMap.has(pid)
+                ? panelOriginalRoleMap.get(pid)
+                : p.role;
+              if (p.role !== orole) draftRoles.set(pid, p.role);
+              else draftRoles.delete(pid);
+              dirtyRole = true;
+            }
+            if (pend.name !== undefined && String(pend.name) !== String(p.name || "")) {
+              p.name = pend.name;
+              const oname = panelOriginalNameMap.has(pid)
+                ? panelOriginalNameMap.get(pid)
+                : String(p.name);
+              if (String(p.name) !== String(oname)) draftNames.set(pid, p.name);
+              else draftNames.delete(pid);
+              dirtyName = true;
+            }
+            if (dirtyRole || dirtyName) {
+              semEditHistory.push({
+                panelId: pid,
+                roleBefore: hBefore.role,
+                nameBefore: hBefore.name,
+              });
+              recordPanelChange(p, hBefore);
+              committed++;
+            }
+            // 提交后若已与现值一致则移除该项
+            const effR =
+              pend.role !== undefined ? pend.role : (p.role || "");
+            const effN =
+              pend.name !== undefined ? pend.name : String(p.name || "");
+            if (String(effR) === String(p.role) && String(effN) === String(p.name || ""))
+              pendingEdits.delete(pid);
+          }
+          if (committed) {
+            refreshDirty();
+            toast(`已临时保存 ${committed} 个裁片语义修改（本地草稿）`);
+          } else {
+            pendingEdits.clear();
+            toast("没有可提交的语义修改");
+          }
           renderPanelSemEditor();
           renderPanelList();
           renderCanvas();
         };
-        $("#pseResetBtn").onclick = () => {
-          // 从撤销栈中取最近一次针对当前裁片的修改并回退，实现“取消当前操作”
-          let i = semEditHistory.length - 1;
-          while (i >= 0 && semEditHistory[i].panelId !== panel.panel_id) i--;
-          if (i < 0) {
-            toast("当前裁片没有可撤销的语义修改");
-            return;
-          }
-          const e = semEditHistory.splice(i, 1)[0];
-          applyPanelRole(panel, e.role);
-          renderPanelSemEditor(); // 重新渲染编辑栏，反映回退后的 role
-          renderPanelList();
-          renderCanvas();
-          toast(`已撤销，当前语义：${panelSemanticName(panel.role) || panel.role}`);
-        };
-        $("#pseTempBtn").onclick = () => {
-          if (!draftRoles.size) {
-            toast("没有待临时保存的语义修改");
-            return;
-          }
-          persistDraft();
-          toast(`已临时保存 ${draftRoles.size} 个裁片的语义修改（本地草稿）`);
-        };
+        // 刷新侧边栏下半部分的修改记录（与语义编辑器同屏展示）
+        renderSidebarHistory();
       }
 
       function renderStitchList() {
@@ -2612,7 +3769,8 @@
       function openConfirmModal(title, message, onConfirm, opts) {
         opts = opts || {};
         $("#modalTitle").textContent = title;
-        $("#modalMessage").textContent = message;
+        // 转义后以 <br> 渲染换行，安全展示多行信息
+        $("#modalMessage").innerHTML = esc(message).replace(/\n/g, "<br>");
         modalConfirmBtn.textContent = opts.confirmText || "确认删除";
         modalConfirmBtn.classList.remove("danger", "primary");
         modalConfirmBtn.classList.add(opts.confirmClass || "danger");
@@ -2643,8 +3801,18 @@
               (x) => x.stitch_id === stitchId,
             );
             if (idx >= 0) {
+              const removed = seam.stitches[idx];
+              const rel = removed.relation || removed.type || "seam";
               seam.stitches.splice(idx, 1);
               if (hoveredStitchId === stitchId) hoveredStitchId = null;
+              recordSeamChange(
+                "删除缝合",
+                stitchId,
+                { stitch_id: stitchId, relation: rel },
+                {},
+                [{ field: "缝合关系", from: `${rel} / ${stitchId}`, to: "（已删除）" }],
+                `删除缝合 ${stitchId}（${rel}）`,
+              );
               renderAll();
               toast(`已删除 ${stitchId}`);
             }
@@ -2676,9 +3844,15 @@
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 500);
-        toast(
-          `已保存: ${name}（${seam.stitches.length} 条缝合关系）`,
+        recordSeamChange(
+          "保存 Seam JSON",
+          name,
+          {},
+          { file: name, stitches: seam.stitches.length },
+          [{ field: "文件", from: "（内存）", to: name }],
+          `保存缝合关系到 ${name}（${seam.stitches.length} 条缝合关系）`,
         );
+        toast(`已保存: ${name}（${seam.stitches.length} 条缝合关系）`);
       }
 
       // 保存裁片语义：将修改后的 panel.role 序列化为 Garment JSON 下载。
@@ -2707,13 +3881,26 @@
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 500);
-        // 保存成功后以当前 role 作为新的“原始值”（撤销基于保存后的状态），并清除临时草稿
+        // 保存成功后以当前 role / 自定义名为新的“原始值”（撤销基于保存后的状态），并清除临时草稿
         panelOriginalRoleMap = new Map();
+        panelOriginalNameMap = new Map();
         for (const p of garment.panels || []) {
           panelOriginalRoleMap.set(p.panel_id, p.role || "");
+          panelOriginalNameMap.set(p.panel_id, String(p.name || ""));
         }
         clearDraft();
         updateDirtyBadge();
+        pushHistory(
+          makeHistoryEntry(
+            "panel",
+            "保存 Garment JSON",
+            name,
+            {},
+            { file: name, panels: garment.panels.length },
+            [{ field: "文件", from: "（内存）", to: name }],
+            `保存裁片语义到 ${name}（${garment.panels.length} 裁片）`,
+          ),
+        );
         toast(`已保存裁片语义: ${name}（${garment.panels.length} 裁片）`);
       }
 
@@ -2723,28 +3910,10 @@
       const manualStatusEl = $("#manualStatus");
       const manualSideTag = $("#manualSideTag");
       const manualInfoEl = $("#manualInfo");
-      // 画布工具：pan = 移动画布，select = 选边
-      let currentTool = "pan";
-      const toolPanBtn = $("#toolPanBtn");
-      const toolSelectBtn = $("#toolSelectBtn");
-
-      // 切换鼠标工具并同步按钮选中态与光标
-      function setTool(tool) {
-        currentTool = tool;
-        toolPanBtn.classList.toggle("active", tool === "pan");
-        toolSelectBtn.classList.toggle("active", tool === "select");
-        updateCanvasCursor();
-      }
-
-      // 依据当前工具 + 人工模式设置画布光标
+      // 鼠标操作完全由“左右键 + 模式”驱动：左键框选/点选，右键平移画布
       function updateCanvasCursor() {
-        const panning = currentTool === "pan";
-        svg.classList.toggle("grabbable", panning);
-        if (panning) {
-          svg.style.cursor = "";
-        } else {
-          svg.style.cursor = manualMode.active ? "crosshair" : "";
-        }
+        svg.classList.remove("grabbable");
+        svg.style.cursor = manualMode.active ? "crosshair" : "";
       }
       const manualActiveBanner = $("#manualActiveBanner");
       let manualAreaRect = null;
@@ -2836,8 +4005,7 @@
           const s = manualMode.selections[0];
           manualInfoEl.textContent = `#1 ${s.panelId} · ${s.edgeIds.length} 边 · ${s.length.toFixed(0)}mm`;
         } else {
-          manualStatusEl.textContent =
-            `已选 ${n} 条组边，点击“确认缝合”建立多对多互缝关系`;
+          manualStatusEl.textContent = `已选 ${n} 条组边，点击“确认缝合”建立多对多互缝关系`;
           confirmBtn.disabled = false;
           const parts = manualMode.selections
             .map((s, i) => `#${i + 1} ${s.panelId}·${s.length.toFixed(0)}mm`)
@@ -2852,13 +4020,13 @@
         rubberBand.classList.add("show");
       }
 
-      // 已选边列表栏：从 manualMode.selections 实时展示所有已选组边
-      const manualSelectedPanel = $("#manualSelectedPanel");
+      // 已选边列表抽屉：从 manualMode.selections 实时展示所有已选组边
       const manualSelectedList = $("#manualSelectedList");
       const manualSelectedCount = $("#manualSelectedCount");
       function refreshManualSelectionPanel() {
         if (!manualMode.active) {
-          manualSelectedPanel.classList.remove("show");
+          // 仅当当前展示的就是“已选边”时才隐藏侧栏，避免误关其它模块
+          if (rightPanelKey === "msp") setRightPanel(null);
           manualSelectedList.innerHTML = "";
           manualSelectedCount.textContent = "0";
           return;
@@ -2867,13 +4035,12 @@
         // 统计所有已选小边数量
         const totalEdges = chains.reduce((s, c) => s + c.edgeIds.length, 0);
         manualSelectedCount.textContent = String(totalEdges);
+        setRightPanel("msp");
         if (!chains.length) {
-          manualSelectedPanel.classList.add("show");
           manualSelectedList.innerHTML =
             '<div class="msp-empty">框选组边以累积选择（可多次框选）</div>';
           return;
         }
-        manualSelectedPanel.classList.add("show");
         manualSelectedList.innerHTML = chains
           .map((c, i) => {
             // 以“由多组小边组合而成的大边(edge_group)”为语义展示基准
@@ -2882,9 +4049,7 @@
             );
             const gidSet = new Set(c.groupIds || []);
             const selGroups = panel
-              ? edgeGroupsOfPanel(panel).filter((g) =>
-                  gidSet.has(g.group_id),
-                )
+              ? edgeGroupsOfPanel(panel).filter((g) => gidSet.has(g.group_id))
               : [];
             return `<div class="selected-edge-group${i === manualMode.selectedIdx ? " sel-active" : ""}" data-idx="${i}">
         <div class="seg-header">
@@ -2899,7 +4064,8 @@
               ? selGroups
                   .map((g) => {
                     const sname = edgeSemanticName(g.role);
-                    const gLabel = "大边 " + String(g.group_id).split(".").pop();
+                    const gLabel =
+                      "大边 " + String(g.group_id).split(".").pop();
                     return `<div class="selected-edge-item" data-group="${esc(g.group_id)}" title="${esc(g.group_id)}">
             <span class="e-dot" style="background:${chainColor(i)}"></span>
             <span class="e-id" title="大边 ${esc(g.group_id)} · ${g.member_edge_ids.length} 段小边">${esc(gLabel)}</span>
@@ -2910,7 +4076,9 @@
                   .join("")
               : (c.edgeIds || [])
                   .map(
-                    (eid) => `<div class="selected-edge-item" data-edge="${esc(eid)}">
+                    (
+                      eid,
+                    ) => `<div class="selected-edge-item" data-edge="${esc(eid)}">
             <span class="e-dot" style="background:${chainColor(i)}"></span>
             <span class="e-id" title="${esc(eid)}">${esc(eid)}</span>
           </div>`,
@@ -2943,7 +4111,11 @@
         const edgeSems = {};
         for (const gid of sel.groupIds || []) {
           const role = groupRoleById(sel.panelId, gid);
-          const sname = edgeSemanticName(role) || "未分类边";
+          // 降级策略：命中映射→中文名；role 为空→无有效语义，不纳入统计；
+          // 映射缺失但确有有效 role→显式展示原始 role（“未收录:...”，绝不误标为“未分类边”）。
+          // 仅当 role 本身为 unknown_edge（edgeSemanticName 已映射为“未分类边”）时才算未分类。
+          const sname = edgeSemanticName(role) || (!role ? "" : `未收录:${role}`);
+          if (!sname) continue;
           edgeSems[sname] = (edgeSems[sname] || 0) + 1;
         }
         // 裁片语义：以链所属面板的 role 解析
@@ -2992,7 +4164,8 @@
           );
         } else {
           // 若之前有暂存的后半已由用户手动再次框选，则忽略旧的 pending 以免重复
-          if (sameChain(manualMode.pendingCapHalf, sel)) manualMode.pendingCapHalf = null;
+          if (sameChain(manualMode.pendingCapHalf, sel))
+            manualMode.pendingCapHalf = null;
           addSelectionChain(sel, false);
         }
         updateManualBar();
@@ -3072,17 +4245,31 @@
         const b1 = B.edgeIds[B.edgeIds.length - 1];
         const dist = ([p1, p2]) => Math.hypot(p1[0] - p2[0], p1[1] - p2[1]);
         // 正向：a首-b首，a尾-b尾；反向：a首-b尾，a尾-b首
-        const straight = dist(A.startPoint, B.startPoint) + dist(A.endPoint, B.endPoint);
-        const crossed = dist(A.startPoint, B.endPoint) + dist(A.endPoint, B.startPoint);
+        const straight =
+          dist(A.startPoint, B.startPoint) + dist(A.endPoint, B.endPoint);
+        const crossed =
+          dist(A.startPoint, B.endPoint) + dist(A.endPoint, B.startPoint);
         if (straight <= crossed) {
           return [
-            { a: { edge_id: a0, endpoint: "start" }, b: { edge_id: b0, endpoint: "start" } },
-            { a: { edge_id: a1, endpoint: "end" }, b: { edge_id: b1, endpoint: "end" } },
+            {
+              a: { edge_id: a0, endpoint: "start" },
+              b: { edge_id: b0, endpoint: "start" },
+            },
+            {
+              a: { edge_id: a1, endpoint: "end" },
+              b: { edge_id: b1, endpoint: "end" },
+            },
           ];
         }
         return [
-          { a: { edge_id: a0, endpoint: "start" }, b: { edge_id: b1, endpoint: "end" } },
-          { a: { edge_id: a1, endpoint: "end" }, b: { edge_id: b0, endpoint: "start" } },
+          {
+            a: { edge_id: a0, endpoint: "start" },
+            b: { edge_id: b1, endpoint: "end" },
+          },
+          {
+            a: { edge_id: a1, endpoint: "end" },
+            b: { edge_id: b0, endpoint: "start" },
+          },
         ];
       }
 
@@ -3101,9 +4288,7 @@
         }
         for (const pid in byPanel) {
           if (byPanel[pid].length > 1 && !isSleevePanel(pid)) {
-            toast(
-              `裁片「${pid}」出现了多个组边（非袖片），请仅保留其一后重选`,
-            );
+            toast(`裁片「${pid}」出现了多个组边（非袖片），请仅保留其一后重选`);
             return;
           }
         }
@@ -3135,7 +4320,7 @@
         const chains = manualMode.selections.slice();
         if (chains.length < 2) return;
         const stitchId = nextStitchId();
-        const finite = (v) => Number.isFinite(v) ? v : 0;
+        const finite = (v) => (Number.isFinite(v) ? v : 0);
 
         // 通用多对多数据：edge_sets 记录每条参与组边（含裁片、边、组、端点、长度）
         const edge_sets = chains.map((c, i) => ({
@@ -3182,10 +4367,23 @@
           review_status: "pending_review",
           source: "manual",
         };
-        seam = seam || { schema_version: 1, garment_id: "", status: "draft", stitches: [] };
+        seam = seam || {
+          schema_version: 1,
+          garment_id: "",
+          status: "draft",
+          stitches: [],
+        };
         if (!Array.isArray(seam.stitches)) seam.stitches = [];
         seam.stitches.unshift(stitch);
         toast(`已添加人工缝合关系 ${stitchId}（${chains.length} 条组边互缝）`);
+        recordSeamChange(
+          "新增缝合",
+          stitchId,
+          {},
+          { stitch_id: stitchId, relation: stitch.relation, panels: chains.map((c) => c.panelId) },
+          [{ field: "缝合关系", from: "（无）", to: `${stitch.relation} / ${stitchId}` }],
+          `新增缝合 ${stitchId}（${stitch.relation}）`,
+        );
         // 若存在袖山分割暂存的后半弧，把它自动带入下一轮选择，便于紧接着配后半与另一侧袖窿
         const pending = manualMode.pendingCapHalf;
         manualMode.pendingCapHalf = null;
@@ -3209,9 +4407,14 @@
           return;
         }
         if (!manualMode.active) {
+          // 进入人工缝合模式时自动关闭裁片语义编辑栏，避免两功能并列冲突
+          if (focusedPanelId) {
+            focusedPanelId = null;
+            setRightPanel(null); // 收起当前语义编辑栏；随后 updateManualBar 会打开“已选边”栏
+            renderPanelList(); // 同步清除左侧选中态，保持 UI 一致
+          }
           manualMode.active = true;
           setManualModeIndicator(true);
-          setTool("select"); // 进入人工缝合默认切到“选边”
           if (manualAdj && Object.keys(manualAdj).length === 0) {
             buildManualAdjacency();
           }
@@ -3237,32 +4440,29 @@
       }
       updateSplitCapBtn();
 
-      // 移动画布 / 选边 工具切换
-      toolPanBtn.onclick = () => setTool("pan");
-      toolSelectBtn.onclick = () => setTool("select");
-
       // 已选边列表交互（容器级事件委托）：
       //     点击各组边 → 切换该组边高亮；点击 × → 立即移除（不再二次确认）
       manualSelectedList.addEventListener("click", (e) => {
         const btn = e.target.closest("[data-del-idx]");
         const item = e.target.closest("[data-idx]");
         if (btn) {
-          removeSelectedChain(parseInt(e.target.closest("[data-del-idx]").dataset.delIdx, 10));
+          removeSelectedChain(
+            parseInt(e.target.closest("[data-del-idx]").dataset.delIdx, 10),
+          );
           return;
         }
         if (item) {
           const idx = parseInt(item.dataset.idx, 10);
-          manualMode.selectedIdx =
-            manualMode.selectedIdx === idx ? -1 : idx;
+          manualMode.selectedIdx = manualMode.selectedIdx === idx ? -1 : idx;
           updateManualBar();
           renderCanvas();
         }
       });
 
-      // 画布框选交互（人工模式）
+      // 画布框选交互（人工模式：仅左键框选，右键交给平移）
       const mArea = document.getElementById("canvasArea");
       mArea.addEventListener("pointerdown", (e) => {
-        if (!manualMode.active || currentTool !== "select") return;
+        if (!manualMode.active || e.button !== 0) return;
         // 点击操作条/工具切换栏时不应触发框选
         if (
           e.target &&
@@ -3287,7 +4487,8 @@
         }
       });
       mArea.addEventListener("pointermove", (e) => {
-        if (!manualMode.active || !manualMode.dragging || !manualMode.box) return;
+        if (!manualMode.active || !manualMode.dragging || !manualMode.box)
+          return;
         e.preventDefault();
         e.stopPropagation();
         const r = manualAreaRect || manualArea();
@@ -3318,13 +4519,17 @@
         }
         garment = jsonData;
         garmentFileName = fileName || garment.garment_id || "";
-        // 记录每裁片加载时的原始 role，供“裁片语义”编辑器撤销还原
+        // 记录每裁片加载时的原始 role / 自定义名，供“裁片语义”编辑器撤销还原
         panelOriginalRoleMap = new Map();
+        panelOriginalNameMap = new Map();
         for (const p of garment.panels || []) {
           panelOriginalRoleMap.set(p.panel_id, p.role || "");
+          panelOriginalNameMap.set(p.panel_id, String(p.name || ""));
         }
-        // 新加载数据后，清空上一份数据的撤销栈，并恢复同名文件的临时草稿
+        // 新加载数据后，清空上一份数据的撤销栈与未保存的临时修改，加载当前文件的修改记录，并恢复同名文件的临时草稿
         semEditHistory = [];
+        pendingEdits.clear();
+        loadHistory();
         const restored = restoreDraft();
         rebuildGeometry();
         buildEdgeLookup();
@@ -3336,9 +4541,7 @@
         renderAll();
         toast(
           `已加载: ${garmentFileName || garment.garment_id} (${garment.panels.length} 裁片)${
-            restored > 0
-              ? `，并恢复 ${restored} 个临时语义修改`
-              : ""
+            restored > 0 ? `，并恢复 ${restored} 个临时语义修改` : ""
           }`,
         );
       }
@@ -3423,8 +4626,9 @@
       $("#saveBtn").onclick = saveSeamJson;
       // 顶栏“保存 Garment JSON”：将裁片语义导出为 JSON（与侧栏编辑器的保存共用同一逻辑）
       $("#saveGarmentBtn").onclick = saveGarmentJson;
-      // 语义编辑栏右上角关闭：取消选中，关闭右侧编辑栏
+      // 语义编辑栏右上角关闭：丢弃未保存的临时修改，取消选中，关闭右侧编辑栏
       $("#pseCloseBtn").onclick = () => {
+        pendingEdits.clear();
         focusedPanelId = null;
         renderAll();
       };
@@ -3475,38 +4679,49 @@
       };
 
       // 拖拽加载 - 阻止浏览器默认行为
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+      ["dragenter", "dragover", "dragleave", "drop"].forEach((evt) => {
         document.body.addEventListener(evt, (e) => {
           e.preventDefault();
           e.stopPropagation();
         });
       });
 
-      const canvasArea = document.querySelector('.canvas-area');
-      canvasArea.addEventListener('dragover', (e) => {
+      const canvasArea = document.querySelector(".canvas-area");
+      canvasArea.addEventListener("dragover", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        canvasArea.style.background = '#dbeafe';
+        canvasArea.style.background = "#dbeafe";
       });
-      canvasArea.addEventListener('dragleave', (e) => {
+      canvasArea.addEventListener("dragleave", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        canvasArea.style.background = '';
+        canvasArea.style.background = "";
       });
-      canvasArea.addEventListener('drop', (e) => {
+      canvasArea.addEventListener("drop", (e) => {
         e.preventDefault();
         e.stopPropagation();
-        canvasArea.style.background = '';
-        const files = [...e.dataTransfer.files].filter(f => f.name.endsWith('.json'));
-        if (files.length === 0) { toast('请拖入 JSON 文件'); return; }
+        canvasArea.style.background = "";
+        const files = [...e.dataTransfer.files].filter((f) =>
+          f.name.endsWith(".json"),
+        );
+        if (files.length === 0) {
+          toast("请拖入 JSON 文件");
+          return;
+        }
         if (files.length === 1) {
           const name = files[0].name;
-          if (name.includes('.garment.reviewed.json') || name.includes('.garment.')) {
-            loadFile(files[0], 'garment');
-          } else if (name.includes('.seam.reviewed.json') || name.includes('.seam.')) {
-            loadFile(files[0], 'seam');
+          if (
+            name.includes(".garment.reviewed.json") ||
+            name.includes(".garment.")
+          ) {
+            loadFile(files[0], "garment");
+          } else if (
+            name.includes(".seam.reviewed.json") ||
+            name.includes(".seam.")
+          ) {
+            loadFile(files[0], "seam");
           } else {
-            loadFile(files[0], 'garment');
+            loadFile(files[0], "garment");
           }
         } else {
           batchLoad(files);
@@ -3529,23 +4744,30 @@
         $("#edgeSemanticToggle").classList.toggle("active", showEdgeSemantics);
         renderCanvas();
       };
+      $("#showNotches").onchange = (e) => {
+        showNotches = e.target.checked;
+        $("#notchToggle").classList.toggle("active", showNotches);
+        renderCanvas();
+      };
 
       // 缩放/平移
       $("#fitBtn").onclick = fitToCanvas;
       $("#zoomInBtn").onclick = () => {
-        const cx = svgW / 2, cy = svgH / 2;
+        const cx = svgW / 2,
+          cy = svgH / 2;
         const old = transform.k;
         transform.k = Math.min(8, old * 1.2);
-        transform.x = cx - (cx - transform.x) * transform.k / old;
-        transform.y = cy - (cy - transform.y) * transform.k / old;
+        transform.x = cx - ((cx - transform.x) * transform.k) / old;
+        transform.y = cy - ((cy - transform.y) * transform.k) / old;
         updateTransform();
       };
       $("#zoomOutBtn").onclick = () => {
-        const cx = svgW / 2, cy = svgH / 2;
+        const cx = svgW / 2,
+          cy = svgH / 2;
         const old = transform.k;
         transform.k = Math.max(0.05, old / 1.2);
-        transform.x = cx - (cx - transform.x) * transform.k / old;
-        transform.y = cy - (cy - transform.y) * transform.k / old;
+        transform.x = cx - ((cx - transform.x) * transform.k) / old;
+        transform.y = cy - ((cy - transform.y) * transform.k) / old;
         updateTransform();
       };
 
@@ -3570,19 +4792,17 @@
         { passive: false },
       );
 
-      // SVG 拖拽平移（仅在空白区域；工具为“移动画布”时启用，选边时禁用）
+      // 右键拖拽平移画布（常态与人工缝合模式下均可用；与左键框选/点选互不冲突）
       svg.addEventListener("pointerdown", (e) => {
-        if (currentTool !== "pan") return;
-        if (e.target === svg || e.target === viewport) {
-          dragState = {
-            x: e.clientX,
-            y: e.clientY,
-            tx: transform.x,
-            ty: transform.y,
-          };
-          svg.setPointerCapture(e.pointerId);
-          svg.classList.add("dragging");
-        }
+        if (e.button !== 2) return;
+        dragState = {
+          x: e.clientX,
+          y: e.clientY,
+          tx: transform.x,
+          ty: transform.y,
+        };
+        svg.setPointerCapture(e.pointerId);
+        svg.classList.add("dragging");
       });
       svg.addEventListener("pointermove", (e) => {
         if (dragState) {
@@ -3591,9 +4811,371 @@
           updateTransform();
         }
       });
-      svg.addEventListener("pointerup", () => {
+      const endDrag = () => {
         dragState = null;
         svg.classList.remove("dragging");
+      };
+      svg.addEventListener("pointerup", endDrag);
+      svg.addEventListener("pointercancel", endDrag);
+      // 屏蔽浏览器右键菜单，保证右键平移的拖拽体验干净流畅
+      svg.addEventListener("contextmenu", (e) => e.preventDefault());
+
+      // ============ 修改记录（History） ============
+      // 本地审计日志：记录裁片语义/名称与缝合关系的新增/删除/保存等操作，按文件持久化到 localStorage
+      let historyLog = [];
+      const historyState = {
+        target: "panel",
+        from: "",
+        to: "",
+        q: "",
+        page: 1,
+        pageSize: 10,
+      };
+      function historyStorageKey() {
+        return (
+          "seamPreview.history." +
+          (garmentFileName || garment?.garment_id || "default")
+        );
+      }
+      function loadHistory() {
+        try {
+          const raw = localStorage.getItem(historyStorageKey());
+          historyLog = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(historyLog)) historyLog = [];
+        } catch (e) {
+          historyLog = [];
+        }
+      }
+      function saveHistory() {
+        try {
+          localStorage.setItem(historyStorageKey(), JSON.stringify(historyLog));
+        } catch (e) {
+          /* 容量不足等忽略 */
+        }
+      }
+      function makeHistoryEntry(target, action, subject, before, after, diff, summary) {
+        return {
+          id: "h_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8),
+          ts: Date.now(),
+          target,
+          action,
+          subject,
+          before,
+          after,
+          diff,
+          summary,
+        };
+      }
+      function pushHistory(entry) {
+        historyLog.push(entry);
+        saveHistory();
+        // 弹窗开启且目标一致时即时刷新（提升可感知性）
+        if ($("#hmOverlay").classList.contains("show")) renderHistory();
+        // 同步内嵌于侧边栏下半部分的修改记录
+        renderSidebarHistory();
+      }
+      // 记录裁片语义/名称变化（自动比对 before 与当前状态生成差异）
+      function recordPanelChange(panel, before) {
+        const after = { role: panel.role || "", name: String(panel.name || "") };
+        const diff = [];
+        if (String(before.role || "") !== String(after.role))
+          diff.push({ field: "语义 role", from: before.role || "", to: after.role });
+        if (String(before.name || "") !== String(after.name))
+          diff.push({ field: "裁片名 name", from: before.name || "", to: after.name });
+        if (!diff.length) return;
+        pushHistory(
+          makeHistoryEntry(
+            "panel",
+            "修改语义/名称",
+            panel.panel_id,
+            before,
+            after,
+            diff,
+            `[${panel.panel_id}] ` +
+              diff
+                .map((d) => `${d.field}: ${d.from || "无"} → ${d.to || "无"}`)
+                .join("；"),
+          ),
+        );
+      }
+      // 记录缝合关系变化（新增/删除等）
+      function recordSeamChange(action, subject, before, after, diff, summary) {
+        pushHistory(
+          makeHistoryEntry("seam", action, subject, before || {}, after || {}, diff || null, summary),
+        );
+      }
+      function formatTs(ts) {
+        const d = new Date(ts);
+        const p = (n) => String(n).padStart(2, "0");
+        return (
+          `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ` +
+          `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+        );
+      }
+      function historyFiltered() {
+        let list = historyLog.filter((e) => e.target === historyState.target);
+        // 裁片修改记录仅显示当前选中裁片；缝合关系记录不受此限制
+        if (historyState.target === "panel")
+          list = list.filter((e) => e.subject === focusedPanelId);
+        const from = historyState.from ? new Date(historyState.from).getTime() : null;
+        const to = historyState.to ? new Date(historyState.to).getTime() : null;
+        if (from !== null) list = list.filter((e) => e.ts >= from);
+        if (to !== null) list = list.filter((e) => e.ts <= to);
+        const q = historyState.q.trim().toLowerCase();
+        if (q) {
+          list = list.filter((e) => {
+            const d = (e.diff || [])
+              .map((x) => `${x.field} ${x.from} ${x.to}`)
+              .join(" ");
+            const hay =
+              `${e.action} ${e.subject} ${e.summary || ""} ${d}`.toLowerCase();
+            return hay.includes(q);
+          });
+        }
+        list.sort((a, b) => b.ts - a.ts);
+        return list;
+      }
+      function historyItemHtml(it) {
+        const diffHtml =
+          it.diff && it.diff.length
+            ? `<div class="hm-diff">` +
+              it.diff
+                .map(
+                  (d) => `
+        <div class="hm-diff-row">
+          <span class="hm-diff-field">${esc(d.field)}：</span>
+          <span class="hm-diff-old">${esc(d.from || "—")}</span>
+          <span class="hm-arrow">→</span>
+          <span class="hm-diff-new">${esc(d.to || "—")}</span>
+        </div>`,
+                )
+                .join("") +
+              `</div>`
+            : "";
+        const subj = it.subject
+          ? `<span class="hm-name">${esc(it.subject)}</span>`
+          : "";
+        const rollable = it.target === "panel";
+        return `
+      <div class="hm-item hm-${it.target}${rollable ? " hm-rollable" : ""}" data-heid="${esc(it.id)}"${rollable ? ' title="点击回退到该记录的修改状态"' : ""}>
+        <div class="hm-item-top">
+          <span class="hm-time">${esc(formatTs(it.ts))}</span>
+          <span class="hm-action">${esc(it.action)}</span>
+          ${subj}
+        </div>
+        ${diffHtml}
+        ${it.summary ? `<div class="hm-summary">${esc(it.summary)}</div>` : ""}
+        ${rollable ? '<span class="hm-roll-hint">点击回退 ↺</span>' : ""}
+      </div>`;
+      }
+      // 仅渲染当前页，避免一次性渲染全部条目导致卡顿
+      function renderHistory() {
+        const list = historyFiltered();
+        const total = list.length;
+        const size = historyState.pageSize;
+        const nPages = Math.max(1, Math.ceil(total / size));
+        historyState.page = Math.max(1, Math.min(historyState.page, nPages));
+        const start = (historyState.page - 1) * size;
+        const pageItems = list.slice(start, start + size);
+        $("#hmCount").textContent = `共 ${total} 条记录`;
+        if (!total) {
+          $("#hmList").innerHTML =
+            '<div class="hm-empty">暂无修改记录</div>';
+          $("#hmPage").textContent = "0 / 0";
+          $("#hmPrev").disabled = true;
+          $("#hmNext").disabled = true;
+          return;
+        }
+        $("#hmPage").textContent = `${historyState.page} / ${nPages}`;
+        $("#hmPrev").disabled = historyState.page <= 1;
+        $("#hmNext").disabled = historyState.page >= nPages;
+        $("#hmList").innerHTML = pageItems.map(historyItemHtml).join("");
+      }
+      // 内嵌于裁片语义侧边栏下半部分的修改记录：仅展示当前选中裁片（语义）修改，倒序最新在上
+      function renderSidebarHistory() {
+        const listEl = document.getElementById("pseHistoryList");
+        if (!listEl) return;
+        const countEl = document.getElementById("boardSemHistoryCount");
+        const list =
+          focusedPanelId !== null
+            ? historyLog
+                .filter(
+                  (e) =>
+                    e.target === "panel" && e.subject === focusedPanelId,
+                )
+                .sort((a, b) => b.ts - a.ts)
+            : [];
+        if (countEl) countEl.textContent = list.length;
+        listEl.innerHTML = list.length
+          ? list.map(historyItemHtml).join("")
+          : '<div class="hm-empty">暂无修改记录</div>';
+      }
+      function setHistoryTab(target) {
+        historyState.target = target;
+        historyState.page = 1;
+        $("#hmTabPanel").classList.toggle("active", target === "panel");
+        $("#hmTabSeam").classList.toggle("active", target === "seam");
+        renderHistory();
+      }
+
+      // ============ 修改记录回退 ============
+      // 将裁片语义恢复到指定历史记录所对应的 after 状态（role/name 及草稿、界面显示），
+      // 并追加一条“回退”历史。仅追加不删除，保持列表完整性与时间顺序，
+      // 不重置撤销/草稿状态，故不影响后续新修改记录的生成。
+      function rollbackPanelTo(entry) {
+        const panel =
+          garment && garment.panels.find((p) => p.panel_id === entry.subject);
+        if (!panel) {
+          toast("找不到对应裁片，无法回退");
+          return;
+        }
+        const target = entry.after || {};
+        const before = { role: panel.role || "", name: String(panel.name || "") };
+        panel.role = target.role || "";
+        panel.name = String(target.name || "");
+        // 同步草稿与“未保存”徽标
+        const orole = panelOriginalRoleMap.has(panel.panel_id)
+          ? panelOriginalRoleMap.get(panel.panel_id)
+          : panel.role;
+        if (panel.role !== orole) draftRoles.set(panel.panel_id, panel.role);
+        else draftRoles.delete(panel.panel_id);
+        const oname = panelOriginalNameMap.has(panel.panel_id)
+          ? panelOriginalNameMap.get(panel.panel_id)
+          : String(panel.name);
+        if (String(panel.name) !== String(oname))
+          draftNames.set(panel.panel_id, panel.name);
+        else draftNames.delete(panel.panel_id);
+        persistDraft();
+        pendingEdits.delete(panel.panel_id); // 丢弃该裁片未保存的临时修改
+        // 追加“回退”修改记录，保持列表完整与时间顺序
+        const after = { role: panel.role || "", name: String(panel.name || "") };
+        const diff = [];
+        if (String(before.role || "") !== String(after.role))
+          diff.push({ field: "语义 role", from: before.role || "", to: after.role });
+        if (String(before.name || "") !== String(after.name))
+          diff.push({ field: "裁片名 name", from: before.name || "", to: after.name });
+        if (diff.length)
+          pushHistory(
+            makeHistoryEntry(
+              "panel",
+              "回退",
+              panel.panel_id,
+              before,
+              after,
+              diff,
+              `[${panel.panel_id}] 回退：` +
+                diff
+                  .map((d) => `${d.field}: ${d.from || "无"} → ${d.to || "无"}`)
+                  .join("；"),
+            ),
+          );
+        // 聚焦该裁片并整体刷新（列表、画布、编辑栏、修改记录）
+        focusedPanelId = panel.panel_id;
+        if (manualMode && manualMode.active) manualExit();
+        renderAll();
+        renderSidebarHistory();
+        toast(`已回退裁片 ${panel.panel_id} 到该记录的状态`);
+      }
+      // 点击历史记录条目：仅裁片（panel）记录可回退，先弹确认对话框
+      function handleHistoryItemClick(e) {
+        const item = e.target.closest("[data-heid]");
+        if (!item) return;
+        const entry = historyLog.find((x) => x.id === item.dataset.heid);
+        if (!entry) return;
+        if (entry.target !== "panel") {
+          toast("仅裁片语义修改记录可回退");
+          return;
+        }
+        const panel =
+          garment && garment.panels.find((p) => p.panel_id === entry.subject);
+        if (!panel) {
+          toast("找不到对应裁片，无法回退");
+          return;
+        }
+        const targetAfter = entry.after || {};
+        const targetName = String(targetAfter.name || "").trim();
+        const label =
+          targetName || panelSemanticName(targetAfter.role) || entry.subject;
+        openConfirmModal(
+          "回退修改记录",
+          `确定将裁片 ${entry.subject} 回退到该记录的状态？\n` +
+            `当前：${String(panel.name || "").trim() || panel.panel_id}（${panel.role || "无"}）\n` +
+            `回退后：${label}（${targetAfter.role || "无"}）\n\n` +
+            `确认后裁片语义将恢复为该记录时的 role / 名称，并追加一条回退记录。`,
+          () => rollbackPanelTo(entry),
+          { confirmText: "确认回退", confirmClass: "primary" },
+        );
+      }
+      // 弹窗列表与侧边栏内嵌列表均可点击回退
+      $("#hmList").addEventListener("click", handleHistoryItemClick);
+      document
+        .getElementById("pseHistoryList")
+        .addEventListener("click", handleHistoryItemClick);
+      function openHistory() {
+        loadHistory(); // 每次打开重新读取，避免遗漏其他标签页的更新
+        $("#hmFrom").value = historyState.from;
+        $("#hmTo").value = historyState.to;
+        $("#hmSearch").value = historyState.q;
+        historyState.page = 1;
+        $("#hmOverlay").classList.add("show");
+        renderHistory();
+      }
+      function closeHistory() {
+        $("#hmOverlay").classList.remove("show");
+      }
+      $("#historyBtn").onclick = openHistory;
+      // 侧边栏下半部分「查看完整修改记录」：打开完整弹窗（含筛选/搜索/分页）
+      $("#boardHistoryBtn").onclick = openHistory;
+      $("#hmCloseBtn").onclick = closeHistory;
+      $("#hmOverlay").addEventListener("click", (e) => {
+        if (e.target === e.currentTarget) closeHistory();
+      });
+      ["hmTabPanel", "hmTabSeam"].forEach((id) => {
+        $("#" + id).addEventListener("click", () =>
+          setHistoryTab($("#" + id).dataset.target),
+        );
+      });
+      // 关键词搜索：节流 200ms，避免频繁重渲染
+      let hmDebounce;
+      $("#hmSearch").addEventListener("input", () => {
+        clearTimeout(hmDebounce);
+        hmDebounce = setTimeout(() => {
+          historyState.q = $("#hmSearch").value;
+          historyState.page = 1;
+          renderHistory();
+        }, 200);
+      });
+      $("#hmFrom").addEventListener("change", () => {
+        historyState.from = $("#hmFrom").value;
+        historyState.page = 1;
+        renderHistory();
+      });
+      $("#hmTo").addEventListener("change", () => {
+        historyState.to = $("#hmTo").value;
+        historyState.page = 1;
+        renderHistory();
+      });
+      $("#hmPrev").addEventListener("click", () => {
+        if (historyState.page > 1) {
+          historyState.page--;
+          renderHistory();
+        }
+      });
+      $("#hmNext").addEventListener("click", () => {
+        if (
+          historyState.page <
+          Math.ceil(historyFiltered().length / historyState.pageSize)
+        ) {
+          historyState.page++;
+          renderHistory();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (
+          e.key === "Escape" &&
+          $("#hmOverlay").classList.contains("show")
+        )
+          closeHistory();
       });
 
       // 响应窗口大小变化
@@ -3601,6 +5183,27 @@
         updateCanvasSize();
         renderCanvas();
       });
+
+      // ============ 关闭/刷新时清理浏览器会话缓存 ============
+      // 清除与当前编辑会话相关的内存状态与 localStorage（草稿 + 修改记录 + 用户），
+      // 保证重新打开同一 JSON 时读到的是文件原始信息，不受上次编辑缓存影响。
+      // 注意：刷新与关闭标签页都会触发 pagehide / unload，故两者都会触发清理。
+      function clearSessionCache() {
+        pendingEdits.clear();
+        draftRoles.clear();
+        draftNames.clear();
+        semEditHistory.length = 0;
+        panelOriginalRoleMap.clear();
+        panelOriginalNameMap.clear();
+        try {
+          localStorage.removeItem(semDraftKey());
+        } catch (e) {}
+        try {
+          localStorage.removeItem(historyStorageKey());
+        } catch (e) {}
+      }
+      window.addEventListener("pagehide", clearSessionCache);
+      window.addEventListener("unload", clearSessionCache);
 
       // 初始渲染（延迟一帧确保布局完成）
       requestAnimationFrame(() => {

@@ -73,6 +73,10 @@ def _annotate_records(records: list[dict[str, Any]], garment_id: str, source_dxf
 
     stitches = match_seams(panels)
 
+    # 领片刀口标记：识别上/下领并计算刀口位置，写入 panel.notches / notch_reference
+    from .notches import mark_collar_notches
+    mark_collar_notches(panels, diagnostics)
+
     # 兜底角色缺失时再用最近文本补一次（不影响已赋值角色）
     for panel in panels:
         if panel["role"] == "unknown_panel" and panel.get("piece_name") is None:
