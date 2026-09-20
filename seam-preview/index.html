@@ -791,6 +791,26 @@
         stroke: #60a5fa;
         stroke-width: 5;
       }
+      .edge-line.seam-a.selected {
+        stroke: #1d4ed8;
+        stroke-width: 4;
+      }
+      .edge-line.seam-b.selected {
+        stroke: #60a5fa;
+        stroke-width: 4;
+      }
+      .sd-mark-start {
+        fill: #16a34a;
+        stroke: #fff;
+        stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
+      }
+      .sd-mark-end {
+        fill: #dc2626;
+        stroke: #fff;
+        stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
+      }
       .edge-line.manual-sel {
         stroke: #7c3aed;
         stroke-width: 5;
@@ -1237,6 +1257,256 @@
         text-align: center;
         color: var(--muted);
         font-size: 12px;
+      }
+      /* ===== 缝合关系方向详情模块 ===== */
+      .sd-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      /* 内容切换淡入淡出（300ms） */
+      .sd-body.sd-fade {
+        animation: sdFadeIn 0.3s ease;
+      }
+      @keyframes sdFadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .sd-summary {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.6;
+        padding: 6px 8px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      .sd-summary b {
+        color: var(--text);
+      }
+      /* 单条边信息卡片 */
+      .sd-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+      .sd-card-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 10px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border);
+      }
+      .sd-edge-name {
+        font-weight: 700;
+        font-size: 12px;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+      .sd-badge {
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 4px;
+        padding: 1px 6px;
+        flex-shrink: 0;
+      }
+      .sd-badge-a {
+        color: #1d4ed8;
+        background: #dbeafe;
+      }
+      .sd-badge-b {
+        color: #b91c1c;
+        background: #fee2e2;
+      }
+      .sd-badge-role {
+        color: #6b7280;
+        background: #e5e7eb;
+      }
+      .sd-badge-match {
+        color: #15803d;
+        background: #dcfce7;
+      }
+      .sd-card-body {
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .sd-pt-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+      .sd-pt-triples {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .sd-swap-btn {
+        align-self: flex-start;
+        margin: 6px 0 2px;
+        font-size: 11px;
+        line-height: 1;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        color: var(--text);
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .sd-swap-btn:hover {
+        background: #eef2f7;
+        border-color: #cbd5e1;
+      }
+      .sd-swap-btn:active {
+        background: #e2e8f0;
+      }
+      .sd-pt-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        border: 1.5px solid #fff;
+      }
+      .sd-dot-start {
+        background: #16a34a;
+      }
+      .sd-dot-end {
+        background: #dc2626;
+      }
+      .sd-members {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 5px 0 1px;
+      }
+      .sd-member-chip {
+        font-size: 10px;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        color: #475569;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 1px 6px;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .sd-pt-label {
+        flex-shrink: 0;
+        width: 30px;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .sd-pt-name {
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .sd-pt-id {
+        color: var(--muted);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        white-space: nowrap;
+      }
+      .sd-pt-coord {
+        color: #9ca3af;
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        white-space: nowrap;
+        margin-left: auto;
+      }
+      .sd-dir-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        padding: 6px 10px;
+        background: #eff6ff;
+        border-top: 1px dashed #bfdbfe;
+        font-size: 11px;
+        color: #1e3a8a;
+        line-height: 1.4;
+      }
+      .sd-dir-arrow {
+        flex-shrink: 0;
+        color: #2563eb;
+        display: inline-flex;
+        align-items: center;
+      }
+      .sd-dir-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      /* 加载指示器 */
+      .sd-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 28px 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .sd-spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid #dbeafe;
+        border-top-color: #2563eb;
+        animation: sdSpin 0.7s linear infinite;
+      }
+      @keyframes sdSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .sd-body .empty-state {
+        padding: 20px 10px;
+      }
+      /* 方向详情底部操作栏：保存当前 item / 重置当前 item，与整体 UI 风格一致 */
+      .sd-actions {
+        display: flex;
+        gap: 8px;
+        padding: 10px 12px;
+        border-top: 1px solid var(--border);
+        background: #f8fafc;
+        flex-shrink: 0;
+      }
+      .sd-actions .btn {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      /* 小屏：详情内容使用滚动视图，避免挤压画布 */
+      @media (max-width: 1365px) {
+        .sd-body {
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .sd-dir-text {
+          white-space: normal;
+        }
       }
       /* 中等屏：适当压缩侧栏与右侧功能栏宽度，保证画布空间 */
       @media (max-width: 1100px) {
@@ -1747,6 +2017,41 @@
                       查看完整修改记录
                     </button>
                   </div>
+                </div>
+              </div>
+            </section>
+            <!-- 缝合关系方向详情模块（点击缝合关系列表 item 时显示） -->
+            <section class="drawer-section" id="sdSection" aria-label="缝合关系方向详情">
+              <div class="drawer-section-head">
+                <span class="drawer-head-title">
+                  缝合关系方向
+                  <span class="pse-dirty" id="sdDirtyBadge" hidden>未保存</span>
+                </span>
+                <span class="drawer-head-right">
+                  <span class="drawer-count" id="sdEdgeCount">0</span>
+                </span>
+              </div>
+              <div class="drawer-section-body">
+                <div class="sd-body" id="sdBody">
+                  <div class="empty-state">点击左侧缝合关系以查看方向详情</div>
+                </div>
+                <div class="sd-actions">
+                  <button
+                    type="button"
+                    class="btn"
+                    id="sdSaveItemBtn"
+                    title="保存当前缝合关系 item 的所有编辑（起点/终点/方向）"
+                  >
+                    保存
+                  </button>
+                  <button
+                    type="button"
+                    class="btn"
+                    id="sdResetItemBtn"
+                    title="将当前缝合关系 item 恢复到最近一次保存的状态"
+                  >
+                    重置
+                  </button>
                 </div>
               </div>
             </section>
@@ -2810,6 +3115,16 @@
         const aEdgeSet = new Set(sideGroups[0] || []);
         const bEdgeSet = new Set(sideGroups.slice(1).flat());
 
+        // 选中查看方向的缝合关系：保持对应边高亮，并标记大边起/终点
+        const selStitch = selectedStitchId
+          ? (seam?.stitches || []).find((s) => s.stitch_id === selectedStitchId)
+          : null;
+        const selGroups = selStitch ? stitchSideEdgeGroups(selStitch) : [];
+        const selA = new Set(selGroups[0] || []);
+        const selB = new Set(selGroups.slice(1).flat());
+        const sdSel = selStitch ? getStitchDirectionData(selectedStitchId) : null;
+        const sdSelGroups = (sdSel && sdSel.groups) || [];
+
         // 绘制裁片
         for (const panel of garment.panels) {
           // 被隐藏的裁片不绘制（填充、边线、标签一并跳过）
@@ -2846,6 +3161,8 @@
             let cls = "edge-line";
             if (aEdgeSet.has(edge.edge_id)) cls += " seam-a strong";
             else if (bEdgeSet.has(edge.edge_id)) cls += " seam-b strong";
+            else if (selA.has(edge.edge_id)) cls += " seam-a selected";
+            else if (selB.has(edge.edge_id)) cls += " seam-b selected";
             line.setAttribute("class", cls);
             line.dataset.edgeId = edge.edge_id;
             viewport.appendChild(line);
@@ -3097,6 +3414,26 @@
           }
         }
 
+        // 选中缝合关系：在大边起点（绿点）与终点（红点）绘制方向标识
+        for (const g of sdSelGroups) {
+          const marker = (pt, cls, r) => {
+            if (!pt || !Array.isArray(pt.point) || pt.point.length < 2) return;
+            const [mx, my] = toSvg(pt.point);
+            const c = document.createElementNS(ns, "circle");
+            c.setAttribute("cx", mx);
+            c.setAttribute("cy", my);
+            c.setAttribute("r", r);
+            c.setAttribute("class", cls);
+            c.setAttribute(
+              "title",
+              (pt.name || "") + " (" + (pt.id || "") + ")",
+            );
+            viewport.appendChild(c);
+          };
+          marker(g.start, "sd-mark-start", 4);
+          marker(g.end, "sd-mark-end", 4);
+        }
+
         // 人工缝合选中态高亮
         renderManualSelection();
       }
@@ -3143,6 +3480,13 @@
       function focusPanel(panelId) {
         // 切换/取消聚焦裁片即视为“进行其它操作而未保存”，丢弃当前临时（pending）修改
         pendingEdits.clear();
+        // 切换到裁片语义编辑栏时清除缝合关系方向详情的选择态
+        if (selectedStitchId) {
+          selectedStitchId = null;
+          document.querySelectorAll("[data-stitch]").forEach((el) => {
+            el.classList.remove("active");
+          });
+        }
         if (focusedPanelId === panelId) {
           focusedPanelId = null;
         } else {
@@ -3237,13 +3581,14 @@
       const drawerSections = {
         msp: $("#mspSection"),
         pse: $("#pseSection"),
+        sde: $("#sdSection"),
       };
-      // 当前屏幕右侧展示的功能模块：null | 'msp' | 'pse'
+      // 当前屏幕右侧展示的功能模块：null | 'msp' | 'pse' | 'sde'
       let rightPanelKey = null;
       // 显示指定功能编辑栏；key 传 null 则整体隐藏侧栏（回收其占用的空间）
       function setRightPanel(key) {
         key = key || null;
-        if (key !== "msp" && key !== "pse") key = null;
+        if (key !== "msp" && key !== "pse" && key !== "sde") key = null;
         rightPanelKey = key;
         for (const k in drawerSections) {
           drawerSections[k].classList.toggle("active", k === key);
@@ -3712,7 +4057,7 @@
             const meta = isGroup
               ? `${esc(type)} · ${groups} 条组边互缝 (共${aCount + bCount}边)`
               : `${esc(type)} · A侧${aCount}边 ↔ B侧${bCount}边`;
-            return `<div class="list-item${hoveredStitchId === s.stitch_id ? " highlight" : ""}" data-stitch="${esc(s.stitch_id)}">
+            return `<div class="list-item${hoveredStitchId === s.stitch_id ? " highlight" : ""}${selectedStitchId === s.stitch_id ? " active" : ""}" data-stitch="${esc(s.stitch_id)}">
       <span class="item-info">
         <span class="item-title">${esc(s.stitch_id)} ${badge}</span>
         <span class="item-sub">${meta}</span>
@@ -3805,6 +4150,11 @@
               const rel = removed.relation || removed.type || "seam";
               seam.stitches.splice(idx, 1);
               if (hoveredStitchId === stitchId) hoveredStitchId = null;
+              if (selectedStitchId === stitchId) {
+                selectedStitchId = null;
+                if (rightPanelKey === "sde") setRightPanel(null);
+              }
+              sdCache.delete(stitchId);
               recordSeamChange(
                 "删除缝合",
                 stitchId,
@@ -3844,6 +4194,12 @@
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 500);
+        // 保存后：当前内存状态即为各 item 的“最近一次保存”基线，后续重置将回退至此。
+        // 序列化取的是此时的 seam 对象，因此所有就地编辑（含起点/终点交换）均已写入 JSON。
+        stitchItemBaseline.clear();
+        dirtyStitchSet.clear();
+        for (const st of seam.stitches) commitStitchItemBaseline(st);
+        updateSdDirtyBadge();
         recordSeamChange(
           "保存 Seam JSON",
           name,
@@ -4238,6 +4594,28 @@
       }
 
       // 生成 point_matches（按端点距离最小化选择方向）
+      // 规范化方向：0.1mm 取整防浮点抖动（与顶点聚类一致）
+      function needsSwap(p1, p2) {
+        if (!p1 || !p2 || p1.length < 2 || p2.length < 2) return false;
+        const a = Math.round(p1[0] * 10);
+        const b = Math.round(p2[0] * 10);
+        if (a !== b) return a > b; // p1 更右 -> 需交换
+        return Math.round(p1[1] * 10) < Math.round(p2[1] * 10); // x 同，p1 更下 -> 需交换
+      }
+      // 对单条大边（组合边）做方向规范化：起点=更左/更上
+      function canonicalChain(c) {
+        if (!c || !c.startPoint || !c.endPoint) return c;
+        const s = c.startPoint;
+        const e = c.endPoint;
+        if (!needsSwap(s, e)) return c;
+        return {
+          ...c,
+          startPoint: e.slice(),
+          endPoint: s.slice(),
+          edgeIds: (c.edgeIds || []).slice().reverse(),
+        };
+      }
+
       function buildPointMatches(A, B) {
         const a0 = A.edgeIds[0];
         const a1 = A.edgeIds[A.edgeIds.length - 1];
@@ -4280,15 +4658,15 @@
           toast("请至少框选 2 条组边后再确认缝合");
           return;
         }
-        // 同裁片校验：同一非袖片裁片只能出现一条组边；
-        // 袖片允许同裁片上的多条（前/后袖缝等）互缝
+        // 同裁片校验：同一裁片只能出现一条组边；
+        // 袖片与滚边条允许同裁片上的多条（前/后袖缝、滚边两缘等）互缝
         const byPanel = {};
         for (const c of chains) {
           (byPanel[c.panelId] = byPanel[c.panelId] || []).push(c);
         }
         for (const pid in byPanel) {
-          if (byPanel[pid].length > 1 && !isSleevePanel(pid)) {
-            toast(`裁片「${pid}」出现了多个组边（非袖片），请仅保留其一后重选`);
+          if (byPanel[pid].length > 1 && !isMultiChainPanel(pid)) {
+            toast(`裁片「${pid}」出现了多个组边（非袖片/滚边条），请仅保留其一后重选`);
             return;
           }
         }
@@ -4316,9 +4694,21 @@
         return !!(p && /sleeve/i.test(p.role || ""));
       }
 
+      // 判断裁片是否允许同裁片多组边互缝：
+      // 袖片（role 含 'sleeve'）与滚边条（role 含 'binding'，如 binding_strip / bias_binding）
+      // 允许两条边建立缝合关系，其余裁片类型仍保持单组边限制
+      function isMultiChainPanel(panelId) {
+        const p = (garment?.panels || []).find((x) => x.panel_id === panelId);
+        if (!p) return false;
+        const role = (p.role || "").toLowerCase();
+        return role.includes("sleeve") || role.includes("binding");
+      }
+
       function createManualStitch() {
         const chains = manualMode.selections.slice();
         if (chains.length < 2) return;
+        // 统一方向：同一裁片内从左到右、从上到下（每条约边各自规范化起点）
+        for (let i = 0; i < chains.length; i++) chains[i] = canonicalChain(chains[i]);
         const stitchId = nextStitchId();
         const finite = (v) => (Number.isFinite(v) ? v : 0);
 
@@ -4512,6 +4902,781 @@
         applyBoxSelection(b);
       });
 
+      // ============ 缝合关系方向详情 ============
+      // 核心纯逻辑（sdCore* 前缀）：不依赖 DOM / 全局状态，参数化输入，
+      // 供单元测试按函数名从本文件提取后独立运行（单一事实来源）。
+      // 端点命名基于顶点注册表：坐标按 0.1mm 聚类（与人工缝合顶点归并约定一致），
+      // 相同坐标的端点共享同一顶点名/ID，从而忠实反映后端数据模型中的连接拓扑。
+
+      function sdCoreRoundCoord(v) {
+        const n = Number(v);
+        return Number.isFinite(n) ? Math.round(n * 10) / 10 : 0;
+      }
+
+      // 顶点聚类键：坐标四舍五入到 0.1mm，同键视为同一顶点
+      function sdCoreVKey(pt) {
+        if (!Array.isArray(pt) || pt.length < 2) return null;
+        return sdCoreRoundCoord(pt[0]) + "," + sdCoreRoundCoord(pt[1]);
+      }
+
+      // 从裁片边构建顶点注册表：Map<key, {name,id,point}>
+      function sdCoreBuildRegistry(panels) {
+        const reg = new Map();
+        let seq = 0;
+        const plist = Array.isArray(panels) ? panels : [];
+        for (const p of plist) {
+          if (!p || !Array.isArray(p.edges)) continue;
+          for (const e of p.edges) {
+            if (!e) continue;
+            const pts = [e.start_point, e.end_point];
+            for (let i = 0; i < pts.length; i++) {
+              const key = sdCoreVKey(pts[i]);
+              if (!key || reg.has(key)) continue;
+              seq++;
+              reg.set(key, {
+                name: "顶点" + seq,
+                id: "v_" + String(seq).padStart(4, "0"),
+                point: [sdCoreRoundCoord(pts[i][0]), sdCoreRoundCoord(pts[i][1])],
+              });
+            }
+          }
+        }
+        return reg;
+      }
+
+      // 规范化缝合关系两侧边：多对多用 edge_sets，否则回退 a_edges/b_edges
+      function sdCoreStitchSides(stitch) {
+        if (stitch && Array.isArray(stitch.edge_sets) && stitch.edge_sets.length) {
+          const sides = stitch.edge_sets.map((gs) => {
+            if (!gs) return [];
+            const ids = gs.edge_ids || gs.edges || [];
+            return Array.isArray(ids) ? ids : [];
+          });
+          return { sides: sides };
+        }
+        return {
+          sides: null,
+          a: Array.isArray(stitch && stitch.a_edges) ? stitch.a_edges : [],
+          b: Array.isArray(stitch && stitch.b_edges) ? stitch.b_edges : [],
+        };
+      }
+
+      // 大边（组合边）提取：以小边组合形成的“大边”为单位组织缝合关系。
+      // 多对多用 edge_sets（每条组边 = 一条大边，含聚合起终点/长度）；
+      // 老数据回退为 A/B 整侧各合并为一条大边（起终点按成员小边链推断）。
+      function sdCoreStitchGroups(stitch) {
+        const out = [];
+        const s = sdCoreStitchSides(stitch);
+        if (s.sides) {
+          const total = s.sides.length;
+          for (let i = 0; i < total; i++) {
+            const gs = stitch && stitch.edge_sets ? stitch.edge_sets[i] : null;
+            const side = total === 2 ? (i === 0 ? "A" : "B") : "组" + (i + 1);
+            out.push({
+              side: side,
+              group_ids: gs && Array.isArray(gs.group_ids) ? gs.group_ids.slice() : [],
+              member_edge_ids: (s.sides[i] || []).slice(),
+              start_point:
+                gs && Array.isArray(gs.start_point) ? gs.start_point.slice() : null,
+              end_point:
+                gs && Array.isArray(gs.end_point) ? gs.end_point.slice() : null,
+              length: gs && Number.isFinite(Number(gs.length)) ? Number(gs.length) : null,
+            });
+          }
+        } else {
+          const pushSide = (ids, groupIds, side) => {
+            if (!Array.isArray(ids) || !ids.length) return;
+            out.push({
+              side: side,
+              group_ids: Array.isArray(groupIds) ? groupIds.slice() : [],
+              member_edge_ids: ids.slice(),
+              start_point: null,
+              end_point: null,
+              length: null,
+            });
+          };
+          pushSide(s.a, stitch && stitch.a_groups, "A");
+          pushSide(s.b, stitch && stitch.b_groups, "B");
+        }
+        return out;
+      }
+
+      // 大边显示名：优先组合边的 group_ids（如 panel_001.edge_group_002），否则用侧别
+      function sdCoreGroupLabel(g) {
+        if (g && Array.isArray(g.group_ids) && g.group_ids.length) {
+          return g.group_ids.join("+");
+        }
+        return (g && g.side) + "侧";
+      }
+
+      // 从成员小边链推断整条大边起终点：首条小边起点 + 末条小边终点（假设边链有序）
+      function sdCoreChainExtremes(garment, memberEdgeIds) {
+        if (!Array.isArray(memberEdgeIds) || !memberEdgeIds.length) return null;
+        const first = sdCoreEdgeInfo(garment, memberEdgeIds[0], null);
+        const last = sdCoreEdgeInfo(garment, memberEdgeIds[memberEdgeIds.length - 1], null);
+        if (!first || !last) return null;
+        return {
+          start_point:
+            first.start && Array.isArray(first.start.point) ? first.start.point.slice() : null,
+          end_point:
+            last.end && Array.isArray(last.end.point) ? last.end.point.slice() : null,
+        };
+      }
+
+      // 缝合关系涉及的全部小边（去重、保持顺序），带所属大边侧别标签
+      function sdCoreStitchEdges(stitch) {
+        const out = [];
+        const seen = new Set();
+        const push = (id, side) => {
+          if (!id || seen.has(id)) return;
+          seen.add(id);
+          out.push({ edge_id: id, side: side });
+        };
+        for (const g of sdCoreStitchGroups(stitch)) {
+          for (const id of g.member_edge_ids) push(id, g.side);
+        }
+        return out;
+      }
+
+      // 方向文本统一格式：从 {起点端点名称} ({起点端点ID}) 到 {终点端点名称} ({终点端点ID})
+      function sdCoreFormatDirection(startName, startId, endName, endId) {
+        return (
+          "从 " + startName + " (" + startId + ") 到 " + endName + " (" + endId + ")"
+        );
+      }
+
+      // 坐标显示文本
+      function sdCoreFmtCoord(pt) {
+        if (!Array.isArray(pt) || pt.length < 2) return "—";
+        const f = (v) => {
+          const n = Number(v);
+          return Number.isFinite(n) ? n.toFixed(1) : "?";
+        };
+        return "(" + f(pt[0]) + ", " + f(pt[1]) + ")";
+      }
+
+      // 解析单条边：在 garment.panels 内查找并解析两端顶点
+      function sdCoreEdgeInfo(garment, edgeId, reg) {
+        if (!garment || !Array.isArray(garment.panels)) return null;
+        for (const p of garment.panels) {
+          if (!p || !Array.isArray(p.edges)) continue;
+          for (const e of p.edges) {
+            if (!e || e.edge_id !== edgeId) continue;
+            const startKey = sdCoreVKey(e.start_point);
+            const endKey = sdCoreVKey(e.end_point);
+            const sv = startKey && reg ? reg.get(startKey) : null;
+            const ev = endKey && reg ? reg.get(endKey) : null;
+            const start = {
+              name: sv ? sv.name : "未知顶点",
+              id: sv ? sv.id : edgeId + "@start",
+              point: e.start_point || null,
+            };
+            const end = {
+              name: ev ? ev.name : "未知顶点",
+              id: ev ? ev.id : edgeId + "@end",
+              point: e.end_point || null,
+            };
+            return {
+              edge_id: edgeId,
+              panel_id: p.panel_id || "",
+              panel_role: p.role || "",
+              role: e.role || "",
+              length: Number(e.length) || 0,
+              start: start,
+              end: end,
+              direction: sdCoreFormatDirection(
+                start.name,
+                start.id,
+                end.name,
+                end.id,
+              ),
+            };
+          }
+        }
+        return null;
+      }
+
+      // 解析端点为可展示对象：优先命中顶点注册表，否则返回“未知顶点”
+      function sdCoreResolvePoint(reg, key, fallbackId, point) {
+        const v = key && reg ? reg.get(key) : null;
+        return {
+          name: v ? v.name : "未知顶点",
+          id: v ? v.id : fallbackId,
+          point: point && Array.isArray(point) ? point.slice() : null,
+        };
+      }
+
+      // 解析一条大边（组合边）：起终点优先用聚合端点，缺省时按成员小边链推断
+      function sdCoreGroupInfo(garment, g, reg) {
+        const needChain =
+          !Array.isArray(g.start_point) || !Array.isArray(g.end_point);
+        const chain = needChain
+          ? sdCoreChainExtremes(garment, g.member_edge_ids)
+          : null;
+        const startPt =
+          Array.isArray(g.start_point)
+            ? g.start_point
+            : chain && chain.start_point;
+        const endPt =
+          Array.isArray(g.end_point)
+            ? g.end_point
+            : chain && chain.end_point;
+        let role = "";
+        let panel_id = "";
+        let panel_role = "";
+        if (g.member_edge_ids && g.member_edge_ids[0]) {
+          const firstEdge = sdCoreEdgeInfo(garment, g.member_edge_ids[0], reg);
+          if (firstEdge) {
+            role = firstEdge.role;
+            panel_id = firstEdge.panel_id;
+            panel_role = firstEdge.panel_role;
+          }
+        }
+        const start = sdCoreResolvePoint(reg, sdCoreVKey(startPt), g.side + "@start", startPt);
+        const end = sdCoreResolvePoint(reg, sdCoreVKey(endPt), g.side + "@end", endPt);
+        return {
+          side: g.side,
+          label: sdCoreGroupLabel(g),
+          group_ids: g.group_ids,
+          member_edge_ids: g.member_edge_ids.slice(),
+          length: g.length,
+          role: role,
+          panel_id: panel_id,
+          panel_role: panel_role,
+          start: start,
+          end: end,
+          direction: sdCoreFormatDirection(
+            start.name,
+            start.id,
+            end.name,
+            end.id,
+          ),
+        };
+      }
+
+      // 数据验证：方向信息与后端数据模型连接逻辑的一致性校验
+      function sdCoreValidateDirection(stitch, garment, reg, edges) {
+        const errors = [];
+        const warnings = [];
+        if (!stitch || typeof stitch !== "object") {
+          return { valid: false, errors: ["缝合关系数据为空"], warnings: [] };
+        }
+        const list = sdCoreStitchEdges(stitch);
+        // 1) 边存在性 + 端点坐标/顶点注册
+        const edgeMap = new Map();
+        if (garment && Array.isArray(garment.panels)) {
+          for (const p of garment.panels) {
+            if (!p || !Array.isArray(p.edges)) continue;
+            for (const e of p.edges) {
+              if (e && e.edge_id) edgeMap.set(e.edge_id, e);
+            }
+          }
+        }
+        for (const it of list) {
+          const e = edgeMap.get(it.edge_id);
+          if (!e) {
+            errors.push(
+              "边 " + it.edge_id + "（" + it.side + "侧）在 Garment 数据中不存在",
+            );
+            continue;
+          }
+          const sk = sdCoreVKey(e.start_point);
+          const ek = sdCoreVKey(e.end_point);
+          if (!sk || !ek) {
+            errors.push("边 " + it.edge_id + " 端点坐标缺失");
+          } else {
+            if (!reg || !reg.get(sk))
+              warnings.push("边 " + it.edge_id + " 起点未在顶点注册表中登记");
+            if (!reg || !reg.get(ek))
+              warnings.push("边 " + it.edge_id + " 终点未在顶点注册表中登记");
+          }
+        }
+        // 2) point_matches 引用校验（后端连接逻辑的核心载体）
+        const pm = stitch.point_matches;
+        if (Array.isArray(pm)) {
+          const ids = new Set(list.map((x) => x.edge_id));
+          pm.forEach((m, i) => {
+            const a = m && m.a;
+            const b = m && m.b;
+            if (!a || !b) {
+              errors.push("point_matches[" + i + "] 缺少 a/b 端点引用");
+              return;
+            }
+            if (!ids.has(a.edge_id))
+              errors.push(
+                "point_matches[" + i + "] 引用边 " + a.edge_id + " 不在该缝合关系中",
+              );
+            if (!ids.has(b.edge_id))
+              errors.push(
+                "point_matches[" + i + "] 引用边 " + b.edge_id + " 不在该缝合关系中",
+              );
+            if (a.endpoint !== "start" && a.endpoint !== "end")
+              errors.push("point_matches[" + i + "] a.endpoint 非法值：" + a.endpoint);
+            if (b.endpoint !== "start" && b.endpoint !== "end")
+              errors.push("point_matches[" + i + "] b.endpoint 非法值：" + b.endpoint);
+            const ae = edgeMap.get(a.edge_id);
+            const be = edgeMap.get(b.edge_id);
+            if (ae) {
+              const key =
+                a.endpoint === "start"
+                  ? sdCoreVKey(ae.start_point)
+                  : sdCoreVKey(ae.end_point);
+              if (!key || !reg || !reg.get(key))
+                errors.push("point_matches[" + i + "] a 侧端点坐标无法解析");
+            }
+            if (be) {
+              const key =
+                b.endpoint === "start"
+                  ? sdCoreVKey(be.start_point)
+                  : sdCoreVKey(be.end_point);
+              if (!key || !reg || !reg.get(key))
+                errors.push("point_matches[" + i + "] b 侧端点坐标无法解析");
+            }
+          });
+        }
+        // 3) 链式拓扑：同侧组边应形成开链/闭环（端点多出超过 2 个视为异常）
+        function chainTerminals(ids) {
+          const cnt = new Map();
+          for (const id of ids) {
+            const e = edgeMap.get(id);
+            if (!e) continue;
+            for (const k of [sdCoreVKey(e.start_point), sdCoreVKey(e.end_point)]) {
+              if (!k) continue;
+              cnt.set(k, (cnt.get(k) || 0) + 1);
+            }
+          }
+          let single = 0;
+          for (const c of cnt.values()) if (c === 1) single++;
+          return single;
+        }
+        const sides = sdCoreStitchSides(stitch);
+        const checkSide = (ids, label) => {
+          const t = chainTerminals(ids);
+          if (t > 2)
+            warnings.push(
+              label +
+                "侧 " +
+                ids.length +
+                " 条边的端点未成链（游离端点数 " +
+                t +
+                "）",
+            );
+        };
+        if (sides.sides) {
+          sides.sides.forEach((ids, i) => checkSide(ids, "组" + (i + 1)));
+        } else {
+          checkSide(sides.a, "A");
+          checkSide(sides.b, "B");
+        }
+        return { valid: errors.length === 0, errors: errors, warnings: warnings };
+      }
+
+      // 构建缝合关系方向详情数据（主入口，纯函数）
+      function sdCoreBuildDirectionData(stitch, garment, registry) {
+        const reg = registry || sdCoreBuildRegistry(garment && garment.panels);
+        // 以大边（组合边）为单位组织方向详情；缺失成员边的组合边保留空占位
+        const groups = sdCoreStitchGroups(stitch).map((g) =>
+          sdCoreGroupInfo(garment, g, reg),
+        );
+        // 扁平化得到全部小边（供校验用）
+        const edges = sdCoreStitchEdges(stitch).map((it) => {
+          const info = sdCoreEdgeInfo(garment, it.edge_id, reg);
+          return info
+            ? {
+                edge_id: it.edge_id,
+                side: it.side,
+                missing: false,
+                role: info.role,
+                panel_id: info.panel_id,
+                panel_role: info.panel_role,
+                length: info.length,
+                start: info.start,
+                end: info.end,
+                direction: info.direction,
+              }
+            : {
+                edge_id: it.edge_id,
+                side: it.side,
+                missing: true,
+                role: "",
+                panel_id: "",
+                start: null,
+                end: null,
+                direction: "从 未知 到 未知",
+              };
+        });
+        return {
+          stitch_id: (stitch && stitch.stitch_id) || "",
+          relation: (stitch && (stitch.relation || stitch.type)) || "seam",
+          type: (stitch && stitch.type) || "seam",
+          groups: groups,
+          edges: edges,
+          validation: sdCoreValidateDirection(stitch, garment, reg, edges),
+        };
+      }
+
+      // ---------- 界面层：状态、缓存与渲染 ----------
+      let selectedStitchId = null; // 当前选中查看方向的缝合关系
+      let sdRegistry = null; // 顶点注册表（加载 Garment 时重建）
+      const sdCache = new Map(); // stitch_id -> 方向详情数据（LRU，上限 20）
+      const SD_CACHE_MAX = 20;
+      // 缝合关系 item 级编辑基线：stitch_id -> 最近一次保存时的完整序列化快照（JSON 字符串）。
+      // 用于“重置当前 item”恢复到最近一次保存状态，与面包屑式的已保存状态保持一致。
+      const stitchItemBaseline = new Map();
+      // 存在尚未“保存当前 item 修改”的缝合关系集合（用于“未保存”徽标提示）
+      const dirtyStitchSet = new Set();
+
+      // 记录某缝合关系最新保存基线（完整快照）并清除其未保存标记
+      function commitStitchItemBaseline(stitch) {
+        if (!stitch) return;
+        stitchItemBaseline.set(stitch.stitch_id, JSON.stringify(stitch));
+        dirtyStitchSet.delete(stitch.stitch_id);
+      }
+      // 标记某缝合关系存在未保存修改
+      function markStitchItemDirty(stitchId) {
+        if (!stitchId) return;
+        dirtyStitchSet.add(stitchId);
+        updateSdDirtyBadge();
+      }
+      // 同步“未保存”徽标：仅当前选中 item 存在未保存修改时展示
+      function updateSdDirtyBadge() {
+        const badge = $("#sdDirtyBadge");
+        if (badge) badge.hidden = !(selectedStitchId && dirtyStitchSet.has(selectedStitchId));
+      }
+      // 将当前选中缝合关系恢复到最近一次保存的状态（重置）。
+      // 通过对比当前快照与基线判断是否有变更，仅在有变更时执行回滚并重渲染。
+      function resetSelectedStitchItem() {
+        const stitchId = selectedStitchId;
+        if (!stitchId || !seam || !Array.isArray(seam.stitches)) return;
+        const idx = seam.stitches.findIndex((x) => x.stitch_id === stitchId);
+        if (idx < 0) return;
+        const baseline = stitchItemBaseline.get(stitchId);
+        if (!baseline) {
+          toast("该缝合关系没有可重置的保存状态");
+          return;
+        }
+        const current = JSON.stringify(seam.stitches[idx]);
+        if (current === baseline) {
+          toast("当前 item 无未保存修改");
+          updateSdDirtyBadge();
+          return;
+        }
+        // 恢复基线快照（深克隆），保证起点/终点/边序等全部字段回退到最近一次保存状态
+        seam.stitches[idx] = JSON.parse(baseline);
+        dirtyStitchSet.delete(stitchId);
+        sdClearCache();
+        renderCanvas();
+        showStitchDirection(stitchId);
+        recordSeamChange(
+          "编辑缝合关系",
+          stitchId,
+          {},
+          {},
+          [{ field: `item 状态`, from: "已修改", to: "已重置" }],
+          `重置缝合关系 ${stitchId} 到最近一次保存的状态`,
+        );
+      }
+      // 保存当前选中缝合关系的所有编辑：以当前状态作为新的“最近保存”基线。
+      // （编辑已就地写入 seam.stitches，此处仅固化基线，供后续重置与持久化区分）
+      function saveSelectedStitchItem() {
+        const stitchId = selectedStitchId;
+        if (!stitchId || !seam || !Array.isArray(seam.stitches)) return;
+        const stitch = seam.stitches.find((x) => x.stitch_id === stitchId);
+        if (!stitch) return;
+        commitStitchItemBaseline(stitch);
+        updateSdDirtyBadge();
+        recordSeamChange(
+          "编辑缝合关系",
+          stitchId,
+          {},
+          {},
+          [{ field: `item 状态`, from: "未保存", to: "已保存" }],
+          `保存缝合关系 ${stitchId} 的修改`,
+        );
+        toast(`已保存 ${stitchId} 的当前修改`);
+      }
+
+      function sdCacheGet(stitchId) {
+        if (sdCache.has(stitchId)) {
+          const v = sdCache.get(stitchId);
+          sdCache.delete(stitchId);
+          sdCache.set(stitchId, v); // 重新插入，保持 LRU 顺序
+          return v;
+        }
+        return undefined;
+      }
+      function sdCacheSet(stitchId, data) {
+        if (sdCache.has(stitchId)) sdCache.delete(stitchId);
+        sdCache.set(stitchId, data);
+        if (sdCache.size > SD_CACHE_MAX) {
+          const oldest = sdCache.keys().next().value;
+          if (oldest !== undefined) sdCache.delete(oldest); // 淘汰最久未使用，防内存泄漏
+        }
+      }
+      function sdClearCache() {
+        sdCache.clear();
+        selectedStitchId = null;
+        document.querySelectorAll("[data-stitch]").forEach((el) => {
+          el.classList.remove("active");
+        });
+        updateSdDirtyBadge(); // 选中清空后直隐“未保存”徽标
+      }
+
+      function getStitchDirectionData(stitchId) {
+        const cached = sdCacheGet(stitchId);
+        if (cached) return cached;
+        const s = (seam && seam.stitches || []).find(
+          (x) => x.stitch_id === stitchId,
+        );
+        if (!s) return null;
+        const data = sdCoreBuildDirectionData(s, garment, sdRegistry);
+        sdCacheSet(stitchId, data);
+        return data;
+      }
+
+      // 大边卡片：以“组合边”为单位展示方向详情（维持原卡片式视觉风格）
+      function sdCardHtml(g, gi) {
+        const sideCls =
+          g.side === "A" ? "sd-badge-a" : g.side === "B" ? "sd-badge-b" : "sd-badge-role";
+        const sideTxt = /^组\d+$/.test(g.side) ? g.side : g.side + "侧";
+        const roleName = g.role
+          ? edgeSemanticName(g.role) || "未收录:" + g.role
+          : "";
+        const memberCount = g.member_edge_ids ? g.member_edge_ids.length : 0;
+        const head =
+          '<div class="sd-card-head">' +
+          '<span class="sd-edge-name" title="' + esc(g.label) + '">' +
+          esc(g.side === "A" || g.side === "B" ? g.side + "侧大边" : g.side + "大边") +
+          "</span>" +
+          '<span class="sd-badge ' + sideCls + '">' + esc(sideTxt) + "</span>" +
+          (roleName
+            ? '<span class="sd-badge sd-badge-role">' + esc(roleName) + "</span>"
+            : "") +
+          '<span class="sd-badge sd-badge-match">' + memberCount + " 条小边</span>" +
+          "</div>";
+        const arrowSvg =
+          '<svg class="sd-dir-arrow" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">' +
+          '<path d="M2 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        const ptRow = (label, dot, p) => {
+          const coord = p && p.point ? sdCoreFmtCoord(p.point) : "—";
+          return (
+            '<div class="sd-pt-row">' +
+            '<span class="sd-pt-dot ' + dot + '" aria-hidden="true"></span>' +
+            '<span class="sd-pt-label">' + label + "</span>" +
+            '<span class="sd-pt-name">' + esc(p ? p.name : "未知顶点") + "</span>" +
+            '<span class="sd-pt-id">' + esc(p ? p.id : "-") + "</span>" +
+            '<span class="sd-pt-coord">' + esc(coord) + "</span>" +
+            "</div>"
+          );
+        };
+        const members =
+          g.member_edge_ids && g.member_edge_ids.length
+            ? '<div class="sd-members">' +
+              g.member_edge_ids
+                .map((id) => '<span class="sd-member-chip" title="' + esc(id) + '">' + esc(id) + "</span>")
+                .join("") +
+              "</div>"
+            : "";
+        return (
+          '<div class="sd-card">' +
+          head +
+          '<div class="sd-card-body">' +
+          '<div class="sd-pt-triples">' +
+          ptRow("起点", "sd-dot-start", g.start) +
+          ptRow("终点", "sd-dot-end", g.end) +
+          "</div>" +
+          '<button type="button" class="sd-swap-btn" data-sd-swap data-gi="' +
+          gi +
+          '" title="交换该大边的起点与终点（从左到右、从上到下规则）">↔ 交换起/终点</button>' +
+          members +
+          '<div class="sd-dir-row">' +
+          arrowSvg +
+          '<span class="sd-dir-text" title="' + esc(g.direction) + '">' +
+          esc(g.direction) +
+          "</span></div>" +
+          "</div></div>"
+        );
+      }
+
+      function renderStitchDirection(data) {
+        const body = $("#sdBody");
+        const countEl = $("#sdEdgeCount");
+        if (!data) {
+          body.innerHTML = '<div class="empty-state">未找到该缝合关系</div>';
+          countEl.textContent = "0";
+          return;
+        }
+        const groupCount = (data.groups || []).length;
+        countEl.textContent = groupCount;
+        let html =
+          '<div class="sd-summary">缝合关系 <b>' +
+          esc(data.stitch_id) +
+          "</b> · " +
+          esc(data.relation) +
+          " · 涉及 <b>" +
+          groupCount +
+          "</b> 条大边（" +
+          (data.edges || []).length +
+          " 条小边）</div>";
+        const groups = data.groups || [];
+        for (let i = 0; i < groups.length; i++) html += sdCardHtml(groups[i], i);
+        body.innerHTML = html;
+        // 淡入淡出过渡（300ms）：先移除动画类→强制回流→重新添加以重启动画
+        void body.offsetWidth;
+        body.classList.add("sd-fade");
+      }
+
+      function showStitchDirection(stitchId) {
+        if (!seam || !seam.stitches || !seam.stitches.length) return;
+        const s = seam.stitches.find((x) => x.stitch_id === stitchId);
+        if (!s) return;
+        // 兼容原列表选择：就地切换高亮（active），不重建列表 DOM，不影响 hover 高亮
+        document.querySelectorAll("[data-stitch]").forEach((el) => {
+          el.classList.toggle("active", el.dataset.stitch === stitchId);
+        });
+        selectedStitchId = stitchId;
+        // 自动展开右侧功能栏并定位到方向详情区块
+        setRightPanel("sde");
+        renderCanvas();
+        updateSdDirtyBadge(); // 切换 item 时刷新“未保存”徽标
+        const body = $("#sdBody");
+        body.classList.remove("sd-fade");
+        // 加载状态指示（本地同步计算，一帧内完成渲染）。
+        // rAF + setTimeout 双保险：后台/节流标签页中 rAF 可能被暂停，
+        // 兜底超时保证 500ms 内必完成渲染。
+        body.innerHTML =
+          '<div class="sd-loading"><span class="sd-spinner"></span><span>正在加载方向数据…</span></div>';
+        let ran = false;
+        const done = () => {
+          if (ran) return;
+          ran = true;
+          const data = getStitchDirectionData(stitchId);
+          renderStitchDirection(data);
+        };
+        if (typeof requestAnimationFrame === "function") requestAnimationFrame(done);
+        setTimeout(done, 50);
+      }
+
+      // 依据 edge_sets 各组的起点规则重建 point_matches（交叉对应），供手动调整后同步
+      function rebuildPointMatches(stitch) {
+        if (!stitch) return;
+        const sets = stitch.edge_sets;
+        const refs = [];
+        if (Array.isArray(sets) && sets.length) {
+          for (const es of sets) {
+            const ids = es.edge_ids || [];
+            if (!ids.length) continue;
+            const firstId = ids[0];
+            const lastId = ids[ids.length - 1];
+            // start_point/end_point 为聚合端点；若可解析则按（x,-y）定 first_ref
+            const sp = es.start_point;
+            const ep = es.end_point;
+            let first, last;
+            if (Array.isArray(sp) && sp.length >= 2 && Array.isArray(ep) && ep.length >= 2) {
+              const k1 = [Math.round(sp[0] * 10), -Math.round(sp[1] * 10)];
+              const k2 = [Math.round(ep[0] * 10), -Math.round(ep[1] * 10)];
+              if (k1 <= k2) {
+                first = { edge_id: firstId, endpoint: "start" };
+                last = { edge_id: lastId, endpoint: "end" };
+              } else {
+                first = { edge_id: lastId, endpoint: "end" };
+                last = { edge_id: firstId, endpoint: "start" };
+              }
+            } else {
+              first = { edge_id: firstId, endpoint: "start" };
+              last = { edge_id: lastId, endpoint: "end" };
+            }
+            refs.push({ first, last });
+          }
+        } else {
+          // 老格式（无 edge_sets）：回退 a_edges/b_edges 首末
+          const a = stitch.a_edges || [];
+          const b = stitch.b_edges || [];
+          if (a.length && b.length) {
+            refs.push(
+              { first: { edge_id: a[0], endpoint: "start" }, last: { edge_id: a[a.length - 1], endpoint: "end" } },
+              { first: { edge_id: b[0], endpoint: "start" }, last: { edge_id: b[b.length - 1], endpoint: "end" } },
+            );
+          }
+        }
+        if (refs.length >= 2) {
+          stitch.point_matches = [
+            { a: { ...refs[0].first }, b: { ...refs[1].last } },
+            { a: { ...refs[0].last }, b: { ...refs[1].first } },
+          ];
+        }
+      }
+
+      // 老格式（a_edges/b_edges，无 edge_sets）缝合关系 → 补充多对多 edge_sets。
+      // 聚合起终点按当前显示的边链推断（首末小边端点）生成，保证转换前后方向一致；
+      // 仅在首次执行交换时惰性转换，未编辑的数据保持原格式不变。
+      function ensureStitchEdgeSets(stitch) {
+        if (!stitch || (Array.isArray(stitch.edge_sets) && stitch.edge_sets.length)) return true;
+        const a = Array.isArray(stitch.a_edges) ? stitch.a_edges.slice() : [];
+        const b = Array.isArray(stitch.b_edges) ? stitch.b_edges.slice() : [];
+        const sides = [];
+        if (a.length) sides.push({ ids: a, groups: stitch.a_groups });
+        if (b.length) sides.push({ ids: b, groups: stitch.b_groups });
+        if (!sides.length) return false;
+        const sideLen = (ids) =>
+          ids.reduce((s, id) => s + (sdCoreEdgeInfo(garment, id, null)?.length || 0), 0);
+        stitch.edge_sets = sides.map((s, i) => {
+          const ex = sdCoreChainExtremes(garment, s.ids);
+          const info = sdCoreEdgeInfo(garment, s.ids[0], null);
+          return {
+            chain_index: i,
+            panel_id: (info && info.panel_id) || "",
+            edge_ids: s.ids.slice(),
+            group_ids: Array.isArray(s.groups) ? s.groups.slice() : [],
+            start_point: ex ? ex.start_point : null,
+            end_point: ex ? ex.end_point : null,
+            length: sideLen(s.ids),
+          };
+        });
+        return true;
+      }
+
+      // 手动调整：交换指定分组大边的起点与终点（并重建 point_matches）。
+      // 老数据（a_edges/b_edges）先经 ensureStitchEdgeSets 补全多对多结构再交换，
+      // 避免按钮点击因缺少 edge_sets 而无任何效果。
+      function flipLargeEdgeDirection(stitchId, gi) {
+        if (!seam || !seam.stitches) return;
+        const stitch = seam.stitches.find((x) => x.stitch_id === stitchId);
+        if (!stitch || !ensureStitchEdgeSets(stitch)) return;
+        const groups = sdCoreStitchGroups(stitch); // 与方向卡片同源，保证 gi 对应一致
+        if (!groups[gi] || !stitch.edge_sets[gi]) return;
+        const es = stitch.edge_sets[gi];
+        if (es.start_point && es.end_point) {
+          const t = es.start_point;
+          es.start_point = es.end_point;
+          es.end_point = t;
+        }
+        if (Array.isArray(es.edge_ids)) es.edge_ids.reverse();
+        // 同步兼容字段（a_edges/b_edges 等），保持新旧两种表示方向一致
+        if (gi === 0) {
+          stitch.a_edges = es.edge_ids.slice();
+          stitch.a_groups = Array.isArray(es.group_ids) ? es.group_ids.slice() : [];
+          if (stitch.a_edges[0]) stitch.a = stitch.a_edges[0];
+        } else if (gi === 1 && stitch.edge_sets.length === 2) {
+          stitch.b_edges = es.edge_ids.slice();
+          stitch.b_groups = Array.isArray(es.group_ids) ? es.group_ids.slice() : [];
+          if (stitch.b_edges[0]) stitch.b = stitch.b_edges[0];
+        }
+        rebuildPointMatches(stitch);
+        recordSeamChange(
+          "编辑缝合关系",
+          stitchId,
+          {},
+          {},
+          [{ field: `edge_sets[${gi}].起终点`, from: "调换前", to: "已交换" }],
+          `交换缝线 ${stitchId} 第 ${gi + 1} 条组的起/终点`,
+        );
+        markStitchItemDirty(stitchId); // 就地编辑后标记未保存
+        sdClearCache();
+        renderCanvas();
+        showStitchDirection(stitchId); // 重新渲染方向卡片
+      }
+
       // ============ 文件加载 ============
       function loadGarmentJson(jsonData, fileName) {
         if (!jsonData.panels || !Array.isArray(jsonData.panels)) {
@@ -4529,6 +5694,9 @@
         // 新加载数据后，清空上一份数据的撤销栈与未保存的临时修改，加载当前文件的修改记录，并恢复同名文件的临时草稿
         semEditHistory = [];
         pendingEdits.clear();
+        // 重建顶点注册表并清空方向详情缓存（新裁片数据 -> 新的顶点编号体系）
+        sdRegistry = sdCoreBuildRegistry(garment.panels);
+        sdClearCache();
         loadHistory();
         const restored = restoreDraft();
         rebuildGeometry();
@@ -4553,6 +5721,13 @@
         seam = jsonData;
         seamFileName = fileName || "";
         hoveredStitchId = null;
+        // 重建 item 级保存基线：加载状态即“最近一次保存”，重置将回退至此
+        stitchItemBaseline.clear();
+        dirtyStitchSet.clear();
+        for (const st of seam.stitches) commitStitchItemBaseline(st);
+        // 换了一份缝合数据：清空方向详情缓存与选择态，收起方向详情区块
+        sdClearCache();
+        if (rightPanelKey === "sde") setRightPanel(null);
         renderAll();
         toast(`已加载: ${seam.stitches.length} 条缝合关系`);
       }
@@ -4633,12 +5808,60 @@
         renderAll();
       };
 
-      // 缝合关系删除按钮 - 容器级事件委托，重渲染后依然生效
+      // 缝合关系列表点击：删除按钮走删除流程，item 本体查看方向详情。
+      // 容器级事件委托，重渲染后依然生效；与 hover 高亮（highlight）互不干扰。
       $("#stitchList").addEventListener("click", (e) => {
         const btn = e.target.closest("[data-delete]");
+        if (btn) {
+          e.stopPropagation();
+          deleteStitch(btn.dataset.delete);
+          return;
+        }
+        const item = e.target.closest("[data-stitch]");
+        if (!item) return;
+        e.stopPropagation();
+        const id = item.dataset.stitch;
+        // 单击已选中的 item → 取消选中：移除高亮、清除选中态、收起右侧方向详情栏
+        if (id === selectedStitchId) {
+          item.classList.remove("active");
+          selectedStitchId = null;
+          if (rightPanelKey === "sde") setRightPanel(null);
+          updateSdDirtyBadge();
+          return;
+        }
+        showStitchDirection(id);
+      });
+
+      // 方向详情卡片：交换大边起/终点
+      $("#sdBody").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-sd-swap]");
         if (!btn) return;
         e.stopPropagation();
-        deleteStitch(btn.dataset.delete);
+        const gi = parseInt(btn.dataset.gi, 10);
+        if (Number.isFinite(gi) && selectedStitchId) flipLargeEdgeDirection(selectedStitchId, gi);
+      });
+
+      // 方向详情动作栏：保存当前 item 的修改 / 重置当前 item 到最近保存状态。
+      // 重置为不可逆操作，故先经二次确认弹窗再回滚。
+      $("#sdSaveItemBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        saveSelectedStitchItem();
+      });
+      $("#sdResetItemBtn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const stitchId = selectedStitchId;
+        if (!stitchId) return;
+        if (!dirtyStitchSet.has(stitchId)) {
+          toast("当前 item 无未保存修改");
+          updateSdDirtyBadge();
+          return;
+        }
+        openConfirmModal(
+          "重置缝合关系",
+          `确定要将 ${stitchId} 恢复到最近一次保存的状态吗？\n当前未保存的起点/终点修改将被丢弃。此操作不可撤销。`,
+          () => resetSelectedStitchItem(),
+          { confirmText: "确认重置", confirmClass: "danger" },
+        );
       });
 
       // 确认弹窗

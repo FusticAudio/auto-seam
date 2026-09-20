@@ -614,8 +614,47 @@ def rectangle_long_edges(panel: dict[str, Any]) -> tuple[list[str], list[str]] |
 # 缝合关系匹配
 # ---------------------------------------------------------------------------
 
+def _canonical_point(p: list[float]) -> tuple[float, float]:
+    """规范比较键：(x, -y)。规则——同一裁片内，起点=更左（x 小），x 相同则更上（y 大）。"""
+    return (p[0] if p and p[0] is not None else 0.0,
+            -(p[1] if p and p[1] is not None else 0.0))
+
+
+def _canonical_endpoint_refs(edge_ids: list[str],
+                             edge_lookup: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """对一段边链，取其物理两端，按 (x,-y) 更小端作为起点，返回 (first_ref, last_ref)。
+
+    若缺坐标信息则退化为轮廓序首末。
+    """
+    first_id = edge_ids[0] if edge_ids else None
+    last_id = edge_ids[-1] if edge_ids else None
+    first = edge_lookup.get(first_id)
+    last = edge_lookup.get(last_id)
+    if not edge_ids:
+        return {}, {}
+    if first and last and first.get("start_point") and last.get("end_point"):
+        p_first = _canonical_point(first["start_point"])
+        p_last = _canonical_point(last["end_point"])
+        if p_first <= p_last:
+            return (
+                {"edge_id": first_id, "endpoint": "start"},
+                {"edge_id": last_id, "endpoint": "end"},
+            )
+        return (
+            {"edge_id": last_id, "endpoint": "end"},
+            {"edge_id": first_id, "endpoint": "start"},
+        )
+    return (
+        {"edge_id": first_id, "endpoint": "start"},
+        {"edge_id": last_id, "endpoint": "end"},
+    )
+
+
 def _chain_endpoints(panel: dict[str, Any], group_ids: list[str]) -> tuple[dict[str, Any], dict[str, Any]]:
-    """返回 (first_edge_ref, last_edge_ref)，按面板轮廓顺序。"""
+    """返回 (first_edge_ref, last_edge_ref)。
+
+    按规则统一：同一裁片内方向从左到右、从上到下（起点=更左/更上端）。
+    """
     edge_lookup = {e["edge_id"]: e for e in panel["edges"]}
     ordered = []
     for gid in group_ids:
@@ -624,10 +663,7 @@ def _chain_endpoints(panel: dict[str, Any], group_ids: list[str]) -> tuple[dict[
             ordered.extend(group["member_edge_ids"])
     if not ordered:
         return {}, {}
-    return (
-        {"edge_id": ordered[0], "endpoint": "start"},
-        {"edge_id": ordered[-1], "endpoint": "end"},
-    )
+    return _canonical_endpoint_refs(ordered, edge_lookup)
 
 
 def _make_stitch(stitch_id: str, relation: str,
@@ -779,6 +815,10 @@ def _cap_half_stitch(sleeve: dict[str, Any], cap: dict[str, Any], half_edge_ids:
                      stitch_id: str = "") -> dict[str, Any]:
     """袖山半弧 ↔ 单个袖窿 的缝合记录（半弧为沿对称轴分出的左/右半边边 id 列表）。"""
     ah_edges = armhole["member_edge_ids"]
+    sleeve_lookup = {e["edge_id"]: e for e in (sleeve.get("edges") or [])}
+    bodice_lookup = {e["edge_id"]: e for e in (bodice.get("edges") or [])}
+    a_first, a_last = _canonical_endpoint_refs(half_edge_ids, sleeve_lookup)
+    b_first, b_last = _canonical_endpoint_refs(ah_edges, bodice_lookup)
     return {
         "stitch_id": stitch_id,
         "type": "seam",
@@ -791,11 +831,9 @@ def _cap_half_stitch(sleeve: dict[str, Any], cap: dict[str, Any], half_edge_ids:
         "b_groups": [armhole["group_id"]],
         "direction": "by_points",
         "point_matches": [
-            {"a": {"edge_id": half_edge_ids[0], "endpoint": "start"},
-             "b": {"edge_id": ah_edges[-1], "endpoint": "end"}},
-            {"a": {"edge_id": half_edge_ids[-1], "endpoint": "end"},
-             "b": {"edge_id": ah_edges[0], "endpoint": "start"}},
-        ] if half_edge_ids and ah_edges else [],
+            {"a": dict(a_first), "b": dict(b_last)},
+            {"a": dict(a_last), "b": dict(b_first)},
+        ] if a_first and b_first else [],
         "length_tolerance": 0.05,
         "confidence": round(confidence, 2),
         "confidence_source": source,
@@ -816,6 +854,9 @@ def _binding_long_stitch(panel: dict[str, Any], side_a_ids: list[str], side_b_id
             group_of[edge_id] = group["group_id"]
     a_groups = sorted({group_of[e] for e in side_a_ids if e in group_of})
     b_groups = sorted({group_of[e] for e in side_b_ids if e in group_of})
+    panel_lookup = {e["edge_id"]: e for e in (panel.get("edges") or [])}
+    a_first, a_last = _canonical_endpoint_refs(side_a_ids, panel_lookup)
+    b_first, b_last = _canonical_endpoint_refs(side_b_ids, panel_lookup)
     return {
         "stitch_id": stitch_id,
         "type": "binding",
@@ -828,11 +869,9 @@ def _binding_long_stitch(panel: dict[str, Any], side_a_ids: list[str], side_b_id
         "b_groups": b_groups,
         "direction": "by_points",
         "point_matches": [
-            {"a": {"edge_id": side_a_ids[0], "endpoint": "start"},
-             "b": {"edge_id": side_b_ids[-1], "endpoint": "end"}},
-            {"a": {"edge_id": side_a_ids[-1], "endpoint": "end"},
-             "b": {"edge_id": side_b_ids[0], "endpoint": "start"}},
-        ] if side_a_ids and side_b_ids else [],
+            {"a": dict(a_first), "b": dict(b_last)},
+            {"a": dict(a_last), "b": dict(b_first)},
+        ] if a_first and b_first else [],
         "length_tolerance": 0.05,
         "confidence": round(confidence, 2),
         "confidence_source": source,

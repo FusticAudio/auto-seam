@@ -65,9 +65,11 @@ tmp/
 *_viz.png
 
 # =====================
-# 桌面工具打包产物（desktop/ 整体忽略：源码仅为 auto-seam 本地打包用途）
+# 桌面工具打包（packaging/ 为可提交源码；其构建产物 build/dist 忽略）
 # =====================
-desktop/
+packaging/build/
+packaging/dist/
+packaging/__pycache__/
 
 # =====================
 # 编辑器 / IDE

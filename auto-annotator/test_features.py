@@ -15,6 +15,7 @@ from app.core.semantics import (  # noqa: E402
     match_seams, sleeve_symmetry_score, mirror_seam_overlap,
     validate_sleeve_seam_pair, classify_panel_groups,
     mark_spurious_panels_unknown, _geom_cross_family_banned,
+    _chain_endpoints, _canonical_point,
 )
 
 PASS = 0
@@ -197,6 +198,51 @@ def main():
     check("袖↔袖：允许（两片袖上下片）", _geom_cross_family_banned("sleeve", "two_piece_sleeve_upper") is False)
     check("身↔身：允许（贴边/衣身同组）", _geom_cross_family_banned("front_bodice", "back_bodice") is False)
     check("贴边↔身：允许（同属身侧）", _geom_cross_family_banned("front_facing", "front_bodice") is False)
+
+    print("== Feature4：缝合方向统一（同一裁片从左到右、从上到下）==")
+    # 构造一段"反向"大边：成员边沿轮廓序，但其物理上最左/最上端应是起点
+    # 直接用 _canonical_point 与规范化比较
+    check("方向键：更左(x 小)比较更左", _canonical_point([10, 5]) < _canonical_point([20, 5]))
+    check("方向键：x 相同→更上(y 大)更靠前", _canonical_point([10, 30]) < _canonical_point([10, 5]))
+    # 通过 _chain_endpoints 端到端：物理更左端为起点
+    panel_h = {
+        "panel_id": "p_h",
+        "edges": [
+            {"edge_id": "p_h.e1", "start_point": [100.0, 50.0], "end_point": [150.0, 50.0]},
+            {"edge_id": "p_h.e2", "start_point": [150.0, 50.0], "end_point": [200.0, 50.0]},
+        ],
+        "edge_groups": [{"group_id": "g_h", "member_edge_ids": ["p_h.e1", "p_h.e2"]}],
+    }
+    f, l = _chain_endpoints(panel_h, ["g_h"])
+    check("水平大边：起点=更左端(e1.start)", f == {"edge_id": "p_h.e1", "endpoint": "start"})
+    check("水平大边：终点=更右端(e2.end)", l == {"edge_id": "p_h.e2", "endpoint": "end"})
+    # 反向成员边序：物理更左端位于链尾，仍应被选为起点
+    panel_h_rev = {
+        "panel_id": "p_hr",
+        "edges": [
+            {"edge_id": "p_hr.e1", "start_point": [200.0, 50.0], "end_point": [150.0, 50.0]},
+            {"edge_id": "p_hr.e2", "start_point": [150.0, 50.0], "end_point": [100.0, 50.0]},
+        ],
+        "edge_groups": [{"group_id": "g_hr", "member_edge_ids": ["p_hr.e1", "p_hr.e2"]}],
+    }
+    f2, l2 = _chain_endpoints(panel_h_rev, ["g_hr"])
+    check("反向链：起点=链尾的更左端", f2 == {"edge_id": "p_hr.e2", "endpoint": "end"})
+    check("反向链：终点=链首的更右端", l2 == {"edge_id": "p_hr.e1", "endpoint": "start"})
+    # 竖直大边：x 相同，y 更大（屏幕上更上）为起点
+    panel_v = {
+        "panel_id": "p_v",
+        "edges": [
+            {"edge_id": "p_v.e1", "start_point": [30.0, 80.0], "end_point": [30.0, 40.0]},
+            {"edge_id": "p_v.e2", "start_point": [30.0, 40.0], "end_point": [30.0, 10.0]},
+        ],
+        "edge_groups": [{"group_id": "g_v", "member_edge_ids": ["p_v.e1", "p_v.e2"]}],
+    }
+    f3, l3 = _chain_endpoints(panel_v, ["g_v"])
+    check("竖直大边：起点=更上(y大)端", f3 == {"edge_id": "p_v.e1", "endpoint": "start"})
+    check("竖直大边：终点=更下(y小)端", l3 == {"edge_id": "p_v.e2", "endpoint": "end"})
+    # 空列表 / 缺边回退：不崩溃
+    check("空组 → 空 refs", _chain_endpoints(panel_h, []) == ({}, {}))
+    check("空边缘 → 空 refs", _chain_endpoints({"edges": [], "edge_groups": []}, ["x"]) == ({}, {}))
 
     print(f"\n==== 结果: {PASS} 通过, {FAIL} 失败 ====")
     sys.exit(0 if FAIL == 0 else 1)
