@@ -869,9 +869,82 @@ def _binding_long_stitch(panel: dict[str, Any], side_a_ids: list[str], side_b_id
         "b_groups": b_groups,
         "direction": "by_points",
         "point_matches": [
-            {"a": dict(a_first), "b": dict(b_last)},
-            {"a": dict(a_last), "b": dict(b_first)},
+            {"a": dict(a_first), "b": dict(b_first)},
+            {"a": dict(a_last), "b": dict(b_last)},
         ] if a_first and b_first else [],
+        "length_tolerance": 0.05,
+        "confidence": round(confidence, 2),
+        "confidence_source": source,
+        "review_status": "needs_review",
+    }
+
+
+def _binding_neckline_stitch(stitch_id: str, binding: dict[str, Any], binding_group_id: str,
+                             necklines: list[tuple[dict[str, Any], dict[str, Any]]],
+                             confidence: float, source: str) -> dict[str, Any]:
+    """binding_strip 滚边条长边 ↔ 大身前后片领口（一对多）缝合记录（type=binding）。
+
+    端点点对应遵循人工缝合规范（仅适用于 binding_strip 角色的领口缝合）：
+      以质心 x 较小者为大身前片、较大者为大身后片；
+      a=滚边条长边规范端点，起点 L=在更左/更上、终点 R=在更右/更下。
+      映射：
+        a.L ↔ 前片领口 R、a.R ↔ 前片领口 L
+        a.L ↔ 后片领口 L、a.R ↔ 后片领口 R
+    """
+    a_first, a_last = _chain_endpoints(binding, [binding_group_id])
+    a_ids: list[str] = []
+    for group in binding.get("edge_groups") or []:
+        if group["group_id"] == binding_group_id:
+            a_ids = group["member_edge_ids"]
+            break
+
+    # 以质心 x 排序识别前后片：较小者为大身前片、较大者为大身后片
+    sorted_neck = sorted(
+        necklines,
+        key=lambda item: (item[0]["bbox"]["min_x"] + item[0]["bbox"]["max_x"]) / 2.0,
+    )
+    front = (sorted_neck[0] if len(sorted_neck) >= 1 else None)
+    back = (sorted_neck[1] if len(sorted_neck) >= 2 else None)
+
+    arrow: list[dict[str, Any]] = []
+    b_groups: list[str] = []
+
+    def _refs(panel: dict[str, Any], group: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+        return _chain_endpoints(panel, [group["group_id"]])
+
+    if front is not None:
+        f_first, f_last = _refs(front[0], front[1])
+        if a_first and f_last:
+            arrow.append({"a": dict(a_first), "b": dict(f_last)})    # a.L ↔ 前片领口 R
+            b_groups.append(front[1]["group_id"])
+        if a_last and f_first:
+            arrow.append({"a": dict(a_last), "b": dict(f_first)})    # a.R ↔ 前片领口 L
+    if back is not None:
+        b_first, b_last = _refs(back[0], back[1])
+        if a_first and b_first:
+            arrow.append({"a": dict(a_first), "b": dict(b_first)})   # a.L ↔ 后片领口 L
+            b_groups.append(back[1]["group_id"])
+        if a_last and b_last:
+            arrow.append({"a": dict(a_last), "b": dict(b_last)})     # a.R ↔ 后片领口 R
+
+    b_ids: list[str] = []
+    for _panel, _group in necklines:
+        b_ids.extend(_group["member_edge_ids"])
+        if _group["group_id"] not in b_groups:
+            b_groups.append(_group["group_id"])
+
+    return {
+        "stitch_id": stitch_id,
+        "type": "binding",
+        "relation": "collar_to_neckline",
+        "a": a_ids[0] if a_ids else "",
+        "b": b_ids[0] if b_ids else "",
+        "a_edges": list(a_ids),
+        "b_edges": b_ids,
+        "a_groups": [binding_group_id],
+        "b_groups": b_groups,
+        "direction": "by_points",
+        "point_matches": arrow,
         "length_tolerance": 0.05,
         "confidence": round(confidence, 2),
         "confidence_source": source,
@@ -1070,10 +1143,15 @@ def match_seams(panels: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     best_ratio = ratio
                     best = g
             if best and best_ratio >= 0.85:
-                add(_make_stitch("", "collar_to_neckline",
-                                 [(collar, [best["group_id"]])],
-                                 [(n[0], [n[1]["group_id"]]) for n in necklines],
-                                 0.55, "rule_inferred"))
+                if collar["role"] == "binding_strip":
+                    # binding_strip 滚边条：领口一对多的端点点对应使用人工缝合规范
+                    add(_binding_neckline_stitch("", collar, best["group_id"], necklines,
+                                                 0.55, "rule_inferred"))
+                else:
+                    add(_make_stitch("", "collar_to_neckline",
+                                     [(collar, [best["group_id"]])],
+                                     [(n[0], [n[1]["group_id"]]) for n in necklines],
+                                     0.55, "rule_inferred"))
 
     # 几何兜底：未匹配边组跨片长度匹配
     # 跨部件过滤：袖片(袖缝)与主体(肩缝/领口/侧缝/下摆)的实际连接仅通过规则阶段建立
