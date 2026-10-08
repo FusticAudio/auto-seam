@@ -1716,6 +1716,18 @@
         vector-effect: non-scaling-stroke;
         pointer-events: visiblePainted;
       }
+      .point-match-label {
+        fill: #6b21a8;
+        font-size: 12px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        vector-effect: non-scaling-stroke;
+        -webkit-user-select: none;
+        user-select: none;
+        pointer-events: none;
+        opacity: 0.9;
+      }
       /* 端点悬停放大：曲线组端点对应的所有端点点位（缝合线端点、大边起/终点标记、点对应圆点）
          在鼠标悬停时平滑放大 1.4 倍，离开后恢复原尺寸。
          transform-box: fill-box 使缩放以标记自身中心为基准，避免从 SVG 原点偏移。 */
@@ -3777,10 +3789,14 @@
           const pm = Array.isArray(selStitch.point_matches)
             ? selStitch.point_matches
             : [];
+          let ind = 1; // 紫色虚线上标注的对应组序号
           for (const m of pm) {
             if (!m || !m.a || !m.b) continue;
-            const av = sdCoreEndpointVertex(m.a.edge_id, m.a.endpoint, sdRegistry);
-            const bv = sdCoreEndpointVertex(m.b.edge_id, m.b.endpoint, sdRegistry);
+            // 吸附到缝合关系该侧实际使用曲线的端点，避免指向曲线外的点
+            const ca = sdCoreConstrainEndpoint(selStitch, "A", m.a, sdRegistry);
+            const cb = sdCoreConstrainEndpoint(selStitch, "B", m.b, sdRegistry);
+            const av = sdCoreEndpointVertex(ca.edge_id, ca.endpoint, sdRegistry);
+            const bv = sdCoreEndpointVertex(cb.edge_id, cb.endpoint, sdRegistry);
             if (!av || !bv) continue;
             const [ax, ay] = toSvg(av.point);
             const [bx, by] = toSvg(bv.point);
@@ -3792,7 +3808,7 @@
             line.setAttribute("class", "point-match-line");
             viewport.appendChild(line);
             // 两个圆点分别对应 A/B 侧端点引用，标记 data-pm-ref 以支持下拉悬停高亮
-            const dotRefs = [sdCoreRefValue(m.a), sdCoreRefValue(m.b)];
+            const dotRefs = [sdCoreRefValue(ca), sdCoreRefValue(cb)];
             for (let di = 0; di < 2; di++) {
               const [px, py] = di === 0 ? [ax, ay] : [bx, by];
               const dot = document.createElementNS(ns, "circle");
@@ -3803,6 +3819,14 @@
               if (dotRefs[di]) dot.setAttribute("data-pm-ref", dotRefs[di]);
               viewport.appendChild(dot);
             }
+            // 紫色虚线上标注对应组序号（1、2、3…），标记在连线中点
+            const num = document.createElementNS(ns, "text");
+            num.setAttribute("x", (ax + bx) / 2);
+            num.setAttribute("y", (ay + by) / 2);
+            num.setAttribute("class", "point-match-label");
+            num.textContent = String(ind);
+            viewport.appendChild(num);
+            ind++;
           }
         }
 
@@ -5045,24 +5069,10 @@
         const a1 = A.edgeIds[A.edgeIds.length - 1];
         const b0 = B.edgeIds[0];
         const b1 = B.edgeIds[B.edgeIds.length - 1];
-        const dist = ([p1, p2]) => Math.hypot(p1[0] - p2[0], p1[1] - p2[1]);
-        // 正向：a首-b首，a尾-b尾；反向：a首-b尾，a尾-b首
-        const straight =
-          dist(A.startPoint, B.startPoint) + dist(A.endPoint, B.endPoint);
-        const crossed =
-          dist(A.startPoint, B.endPoint) + dist(A.endPoint, B.startPoint);
-        if (straight <= crossed) {
-          return [
-            {
-              a: { edge_id: a0, endpoint: "start" },
-              b: { edge_id: b0, endpoint: "start" },
-            },
-            {
-              a: { edge_id: a1, endpoint: "end" },
-              b: { edge_id: b1, endpoint: "end" },
-            },
-          ];
-        }
+        // 统一为交叉对应（与 sdCoreCrossMatches / 后端 _make_stitch 同约定）：
+        // A组起点↔B组终点、A组终点↔B组起点。
+        // 缝合方向由下游 need_reverse_b / reverse_b_of 依 point_matches 推导，
+        // 避免同一 seam 文件内混用「距离判定的直/交叉」两套约定。
         return [
           {
             a: { edge_id: a0, endpoint: "start" },
@@ -6174,23 +6184,83 @@
         return [];
       }
 
+      // 某侧自身的边集（缝合关系实际使用的曲线）：A 用 a_edges、B 用 b_edges
+      function sdCoreSideEdgeIds(stitch, side) {
+        if (!stitch) return [];
+        const list = side === "A" ? stitch.a_edges : stitch.b_edges;
+        return Array.isArray(list) ? list : [];
+      }
+
+      // 将端点引用吸附到该缝合关系该侧实际使用的边集上。
+      // 某些缝合关系的大边组（如袖山、领窝）包含整条曲线的全部小边，而该 stitch 只使用其中一段
+      // 子曲线（a_edges/b_edges）。若引用指向的边不属于侧内边集，说明落到了曲线外的点，
+      // 需按端点类型吸附到该组在侧内边集的起点/终点（起点→首条边起点、终点→末条边终点）。
+      // 返回约束后的 {edge_id, endpoint}；无法吸附时原样返回。
+      function sdCoreConstrainEndpoint(stitch, side, ref, reg) {
+        const sideEdges = sdCoreSideEdgeIds(stitch, side);
+        if (!ref || !ref.edge_id || !sideEdges.length) return ref;
+        if (sideEdges.includes(ref.edge_id)) return ref; // 已在侧内，无需约束
+        const sideSet = new Set(sideEdges);
+        const groupRefs = side === "A" ? (stitch.a_groups || []) : (stitch.b_groups || []);
+        for (const gr of groupRefs) {
+          const members = (sdCoreResolveGroupMembers(gr) || []).filter((e) =>
+            sideSet.has(e),
+          );
+          if (!members.length) continue;
+          return ref.endpoint === "end"
+            ? { edge_id: members[members.length - 1], endpoint: "end" }
+            : { edge_id: members[0], endpoint: "start" };
+        }
+        return ref;
+      }
+
       // 某侧的端点引用下拉选项：仅列组起点（首条成员小边的起点）与组终点（末条成员小边的终点）。
+      // 端点标签附物理方位徽标（规范起点=左/上、规范终点=右/下），与后端 _canonical_point 同口径，
+      // 便于人工校对时对齐 A/B 两侧端点的交叉对应关系（A规范起点 ↔ B规范终点）。
       // 参照 project 的 endpointChoices —— 内部小段连接点不参与选择。
       // 注意：滚边条等大边常为单条成员小边（members.length === 1），此时组起点=该边起点、
       // 组终点=该边终点，仍应产出两个独立端点，不能因 `members.length > 1` 丢弃组终点。
+      // 关键：组边可能比本缝合关系使用的子曲线更完整（a_edges/b_edges 为其子集），
+      // 需先按侧内边集过滤成员，否则组起点/终点会落到不属于本缝合关系曲线的点。
+      // 物理方位徽标：与后端 semantics.py 的 _canonical_point 同口径——规范键 (x, -y)，
+      // 键更小的一端为「规范起点（左/上）」，另一端为「规范终点（右/下）」；坐标缺失时不加徽标。
+      // 组边存储方向可能与规范方向不一致（如自右向左存储），徽标按两端坐标动态判定，
+      // 避免把「组起点」（轮廓序）误标为「规范起点」。
+      function sdCoreSideBadges(first, last) {
+        const a = first && first.start && first.start.point;
+        const b = last && last.end && last.end.point;
+        if (!a || !b) return { start: "", end: "" };
+        const key = (p) => [
+          p[0] == null ? 0 : p[0],
+          -(p[1] == null ? 0 : p[1]),
+        ];
+        const ka = key(a);
+        const kb = key(b);
+        const aIsStart = ka[0] < kb[0] || (ka[0] === kb[0] && ka[1] < kb[1]);
+        return aIsStart
+          ? { start: " · 规范起点 (左/上)", end: " · 规范终点 (右/下)" }
+          : { start: " · 规范终点 (右/下)", end: " · 规范起点 (左/上)" };
+      }
+
       function sdCoreEndpointOptions(stitch, side, reg) {
         const out = [];
         const refs =
           side === "A"
             ? (stitch && stitch.a_groups) || []
             : (stitch && stitch.b_groups) || [];
+        const sideSet = new Set(sdCoreSideEdgeIds(stitch, side));
         for (const ref of refs) {
-          const members = sdCoreResolveGroupMembers(ref);
+          let members = sdCoreResolveGroupMembers(ref);
           if (!members.length) {
             console.warn(
               `[点对应] 侧别 ${side} 组引用 "${ref}" 未解析到任何成员边，已跳过`,
             );
             continue;
+          }
+          if (sideSet.size) {
+            // 仅保留本缝合关系本侧实际使用的边（约束到该侧子曲线）
+            const constrained = members.filter((e) => sideSet.has(e));
+            if (constrained.length) members = constrained;
           }
           const label = ref;
           const first = sdCoreEdgeInfo(garment, members[0], reg);
@@ -6200,13 +6270,20 @@
             members[members.length - 1],
             reg,
           );
+          const badge = sdCoreSideBadges(first, last);
           if (first) {
             out.push({
               value: sdCoreRefValue({
                 edge_id: first.edge_id,
                 endpoint: "start",
               }),
-              label: label + " · 组起点 (" + first.start.name + ")",
+              label:
+                label +
+                " · 组起点" +
+                badge.start +
+                " (" +
+                first.start.name +
+                ")",
             });
           }
           if (last) {
@@ -6215,7 +6292,13 @@
                 edge_id: last.edge_id,
                 endpoint: "end",
               }),
-              label: label + " · 组终点 (" + last.end.name + ")",
+              label:
+                label +
+                " · 组终点" +
+                badge.end +
+                " (" +
+                last.end.name +
+                ")",
             });
           }
           if (!first || !last) {

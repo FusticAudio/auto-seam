@@ -650,6 +650,35 @@ def _canonical_endpoint_refs(edge_ids: list[str],
     )
 
 
+def _chain_endpoint_refs_by_y(edge_ids: list[str],
+                              edge_lookup: dict[str, dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """对一段边链，按物理端点 y 大小返回 (upper_ref, lower_ref)（y 大=更上）。
+
+    用于袖山-袖窿解剖学关键点同向对齐：
+      袖山最高点 ↔ 袖窿上端（肩缝线与袖窿的交点）
+      袖山最低点 ↔ 袖窿下端（侧缝线与袖窿的交点，腋下）
+    与 `_canonical_endpoint_refs`（按 (x,-y) 规范键）不同：此处只按竖直方向
+    排序，保证「最高点对最高点、最低点对最低点」，避免袖山与袖窿端点颠倒。
+    缺坐标信息时退化为轮廓序首末。
+    """
+    if not edge_ids:
+        return {}, {}
+    first_id, last_id = edge_ids[0], edge_ids[-1]
+    first = edge_lookup.get(first_id)
+    last = edge_lookup.get(last_id)
+    if not first or not last:
+        return {}, {}
+    first_ref = {"edge_id": first_id, "endpoint": "start"}
+    last_ref = {"edge_id": last_id, "endpoint": "end"}
+    p_first = first.get("start_point")
+    p_last = last.get("end_point")
+    if p_first and p_last:
+        if p_first[1] >= p_last[1]:
+            return first_ref, last_ref
+        return last_ref, first_ref
+    return first_ref, last_ref
+
+
 def _chain_endpoints(panel: dict[str, Any], group_ids: list[str]) -> tuple[dict[str, Any], dict[str, Any]]:
     """返回 (first_edge_ref, last_edge_ref)。
 
@@ -664,6 +693,39 @@ def _chain_endpoints(panel: dict[str, Any], group_ids: list[str]) -> tuple[dict[
     if not ordered:
         return {}, {}
     return _canonical_endpoint_refs(ordered, edge_lookup)
+
+
+def _chain_orientation(edge_ids: list[str],
+                       edge_lookup: dict[str, dict[str, Any]]) -> str | None:
+    """判断边链的总体走向：'vertical'（|dy|>=|dx|）/ 'horizontal' / None（缺坐标）。
+
+    用于端点点对应的方向策略：纵向链（侧缝/袖缝等）按物理高度同向对齐
+    （高点↔高点、低点↔低点），横向链（对半领等镜像摆放）保留固定交叉对应。
+    """
+    if not edge_ids:
+        return None
+    first = edge_lookup.get(edge_ids[0])
+    last = edge_lookup.get(edge_ids[-1])
+    if not first or not last:
+        return None
+    p0, p1 = first.get("start_point"), last.get("end_point")
+    if not p0 or not p1:
+        return None
+    dx = abs(p1[0] - p0[0])
+    dy = abs(p1[1] - p0[1])
+    return "vertical" if dy >= dx else "horizontal"
+
+
+def _b_reversed(point_matches: list[dict[str, Any]]) -> bool:
+    """推导 B 侧是否反转缝合方向（与 clo_common.need_reverse_b 同口径）：
+    存在 a.endpoint=='start' 的匹配 → 其 b.endpoint=='end'；否则回退首条匹配；
+    point_matches 为空 → False。供 JSON 显式落盘 b_reversed，消除下游推导歧义。"""
+    if point_matches:
+        for m in point_matches:
+            if (m.get("a") or {}).get("endpoint") == "start":
+                return (m.get("b") or {}).get("endpoint") == "end"
+        return (point_matches[0].get("b") or {}).get("endpoint") == "end"
+    return False
 
 
 def _make_stitch(stitch_id: str, relation: str,
@@ -703,6 +765,37 @@ def _make_stitch(stitch_id: str, relation: str,
     a_last = a_refs[-1] if a_refs else {}
     b_first = b_refs[0] if b_refs else {}
     b_last = b_refs[-1] if b_refs else {}
+    point_matches = []
+    if a_first and b_first:
+        # 纵向单链缝（袖缝/长度兜底 seam_pair 等）：按物理高度同向对齐
+        # （高点↔高点、低点↔低点），避免镜像摆放时端点点对应颠倒（标反）。
+        # 仅当两侧各为单条链且整体走向纵向时启用；横向链（如对半领镜像摆放、
+        # 领口弧线）保留固定交叉对应（A首端↔B末端、A末端↔B首端），与期望 golden 一致。
+        a_lookup = {e["edge_id"]: e for _p, _gids in side_a for e in (_p.get("edges") or [])}
+        b_lookup = {e["edge_id"]: e for _p, _gids in side_b for e in (_p.get("edges") or [])}
+        a_orient = _chain_orientation(a_ids, a_lookup)
+        b_orient = _chain_orientation(b_ids, b_lookup)
+        if (len(side_a) == 1 and len(side_b) == 1
+                and a_orient == "vertical" and b_orient == "vertical"):
+            a_upper, a_lower = _chain_endpoint_refs_by_y(a_ids, a_lookup)
+            b_upper, b_lower = _chain_endpoint_refs_by_y(b_ids, b_lookup)
+            upper_match = ({"a": dict(a_upper), "b": dict(b_upper)}
+                           if a_upper and b_upper else None)
+            lower_match = ({"a": dict(a_lower), "b": dict(b_lower)}
+                           if a_lower and b_lower else None)
+            if upper_match and lower_match:
+                point_matches = ([upper_match, lower_match]
+                                 if a_upper.get("endpoint") == "start"
+                                 else [lower_match, upper_match])
+            elif upper_match:
+                point_matches = [upper_match]
+            elif lower_match:
+                point_matches = [lower_match]
+        else:
+            point_matches = [
+                {"a": dict(a_first), "b": dict(b_last)},
+                {"a": dict(a_last), "b": dict(b_first)},
+            ]
     return {
         "stitch_id": stitch_id,
         "type": type_,
@@ -714,10 +807,8 @@ def _make_stitch(stitch_id: str, relation: str,
         "a_groups": a_groups_all,
         "b_groups": b_groups_all,
         "direction": "by_points",
-        "point_matches": [
-            {"a": dict(a_first), "b": dict(b_last)},
-            {"a": dict(a_last), "b": dict(b_first)},
-        ] if a_first and b_first else [],
+        "point_matches": point_matches,
+        "b_reversed": _b_reversed(point_matches),
         "length_tolerance": 0.03,
         "confidence": round(confidence, 2),
         "confidence_source": source,
@@ -780,7 +871,7 @@ def _cap_halves(cap: dict[str, Any], edges: list[dict[str, Any]]) -> tuple[list[
 
 def _group_length(edge_ids: list[str], edges: list[dict[str, Any]]) -> float:
     lookup = {e["edge_id"]: e for e in edges}
-    return sum(lookup[eid]["length"] for eid in edge_ids if eid in lookup)
+    return sum((lookup[eid].get("length") or 0.0) for eid in edge_ids if eid in lookup)
 
 
 def _pick_armhole(armholes: list[tuple[dict[str, Any], dict[str, Any]]], side: str,
@@ -813,12 +904,24 @@ def _cap_half_stitch(sleeve: dict[str, Any], cap: dict[str, Any], half_edge_ids:
                      bodice: dict[str, Any], armhole: dict[str, Any],
                      relation: str, confidence: float, source: str,
                      stitch_id: str = "") -> dict[str, Any]:
-    """袖山半弧 ↔ 单个袖窿 的缝合记录（半弧为沿对称轴分出的左/右半边边 id 列表）。"""
+    """袖山半弧 ↔ 单个袖窿 的缝合记录（半弧为沿对称轴分出的左/右半边边 id 列表）。
+
+    point_matches 按解剖学关键点同向对齐（修复方案）：
+      袖山最高点（链物理上端）↔ 袖窿上端（肩缝线与袖窿的交点）
+      袖山最低点（链物理下端）↔ 袖窿下端（侧缝线与袖窿的交点，腋下）
+    与通用 `_make_stitch` 的固定交叉对应不同：此处必须按 y 同向对齐，
+    否则袖山最高点会缝到腋下、最低点缝到肩端（与解剖学对应完全颠倒）。
+    同时落盘 `b_reversed`，确保下游（CLO 脚本）方向判定自洽。
+    """
     ah_edges = armhole["member_edge_ids"]
     sleeve_lookup = {e["edge_id"]: e for e in (sleeve.get("edges") or [])}
     bodice_lookup = {e["edge_id"]: e for e in (bodice.get("edges") or [])}
-    a_first, a_last = _canonical_endpoint_refs(half_edge_ids, sleeve_lookup)
-    b_first, b_last = _canonical_endpoint_refs(ah_edges, bodice_lookup)
+    a_upper, a_lower = _chain_endpoint_refs_by_y(half_edge_ids, sleeve_lookup)
+    b_upper, b_lower = _chain_endpoint_refs_by_y(ah_edges, bodice_lookup)
+    point_matches = [
+        {"a": dict(a_upper), "b": dict(b_upper)},   # 袖山最高点 ↔ 肩缝-袖窿交点
+        {"a": dict(a_lower), "b": dict(b_lower)},   # 袖山最低点 ↔ 侧缝-袖窿交点（腋下）
+    ] if a_upper and b_upper else []
     return {
         "stitch_id": stitch_id,
         "type": "seam",
@@ -830,11 +933,118 @@ def _cap_half_stitch(sleeve: dict[str, Any], cap: dict[str, Any], half_edge_ids:
         "a_groups": [cap["group_id"]],
         "b_groups": [armhole["group_id"]],
         "direction": "by_points",
-        "point_matches": [
-            {"a": dict(a_first), "b": dict(b_last)},
-            {"a": dict(a_last), "b": dict(b_first)},
-        ] if a_first and b_first else [],
+        "point_matches": point_matches,
+        "b_reversed": _b_reversed(point_matches),
         "length_tolerance": 0.05,
+        "confidence": round(confidence, 2),
+        "confidence_source": source,
+        "review_status": "needs_review",
+    }
+
+
+def _shoulder_stitch(front: dict[str, Any], f_group: dict[str, Any],
+                     back: dict[str, Any], b_group: dict[str, Any],
+                     relation: str, confidence: float, source: str,
+                     stitch_id: str = "") -> dict[str, Any]:
+    """前片肩缝 ↔ 后片肩缝 缝合记录。
+
+    point_matches 按解剖学关键点同向对齐（与 `_cap_half_stitch` 同理）：
+      前片肩缝上端点 ↔ 后片肩缝上端点
+      前片肩缝下端点 ↔ 后片肩缝下端点
+    不能用通用 `_make_stitch` 的固定交叉对应（A起点↔B终点、A终点↔B起点）——
+    否则前片肩缝上端点会缝到后片下端点、下端点缝到后片上端点，产生 X 形交叉
+    错误缝合。同时落盘 `b_reversed`，确保下游（CLO 脚本）方向判定自洽。
+    """
+    a_ids = f_group["member_edge_ids"]
+    b_ids = b_group["member_edge_ids"]
+    front_lookup = {e["edge_id"]: e for e in (front.get("edges") or [])}
+    back_lookup = {e["edge_id"]: e for e in (back.get("edges") or [])}
+    a_upper, a_lower = _chain_endpoint_refs_by_y(a_ids, front_lookup)
+    b_upper, b_lower = _chain_endpoint_refs_by_y(b_ids, back_lookup)
+    # point_matches 顺序与期望 golden 一致：含 a 侧链起点（endpoint=='start'）
+    # 的匹配排在前面（上游 _make_stitch 的惯例是"a 起点匹配在前"）。
+    upper_match = {"a": dict(a_upper), "b": dict(b_upper)} if a_upper and b_upper else None
+    lower_match = {"a": dict(a_lower), "b": dict(b_lower)} if a_lower and b_lower else None
+    if upper_match and lower_match:
+        point_matches = ([upper_match, lower_match] if a_upper.get("endpoint") == "start"
+                         else [lower_match, upper_match])
+    elif upper_match:
+        point_matches = [upper_match]
+    elif lower_match:
+        point_matches = [lower_match]
+    else:
+        point_matches = []
+    return {
+        "stitch_id": stitch_id,
+        "type": "seam",
+        "relation": relation,
+        "a": a_ids[0] if a_ids else "",
+        "b": b_ids[0] if b_ids else "",
+        "a_edges": list(a_ids),
+        "b_edges": list(b_ids),
+        "a_groups": [f_group["group_id"]],
+        "b_groups": [b_group["group_id"]],
+        "direction": "by_points",
+        "point_matches": point_matches,
+        "b_reversed": _b_reversed(point_matches),
+        "length_tolerance": 0.03,
+        "confidence": round(confidence, 2),
+        "confidence_source": source,
+        "review_status": "needs_review",
+    }
+
+
+def _side_stitch(front: dict[str, Any], f_group: dict[str, Any],
+                 back: dict[str, Any], b_group: dict[str, Any],
+                 relation: str, confidence: float, source: str,
+                 stitch_id: str = "") -> dict[str, Any]:
+    """前片侧缝 ↔ 后片侧缝 缝合记录。
+
+    point_matches 按链物理高度同向对齐（与期望 golden 一致）：
+      前片侧缝链上端 ↔ 后片侧缝链上端
+      前片侧缝链下端 ↔ 后片侧缝链下端
+    即「同高端点互相对应」（底部↔底部、顶部↔顶部）。不能用规范键 (x,-y)
+    的 `_chain_endpoints`——侧缝近竖直，其规范首端由亚毫米级 x 偏移（斜向）
+    决定，镜像摆放时前后片斜向相反，会把顶端错缝到底端（标反）；
+    也不用 `_make_stitch` 的固定交叉对应（A首端↔B末端）造成 X 交叉。
+    与 `_cap_half_stitch` / `_shoulder_stitch` 同一套按 y 同向对齐口径。
+    """
+    a_ids = f_group["member_edge_ids"]
+    b_ids = b_group["member_edge_ids"]
+    front_lookup = {e["edge_id"]: e for e in (front.get("edges") or [])}
+    back_lookup = {e["edge_id"]: e for e in (back.get("edges") or [])}
+    a_upper, a_lower = _chain_endpoint_refs_by_y(a_ids, front_lookup)
+    b_upper, b_lower = _chain_endpoint_refs_by_y(b_ids, back_lookup)
+    upper_match = ({"a": dict(a_upper), "b": dict(b_upper)}
+                   if a_upper and b_upper else None)
+    lower_match = ({"a": dict(a_lower), "b": dict(b_lower)}
+                   if a_lower and b_lower else None)
+    if upper_match and lower_match:
+        # point_matches 顺序与期望 golden 一致：含 a 侧链起点（endpoint=='start'）
+        # 的匹配排在前面（与 _shoulder_stitch 同惯例）。
+        point_matches = ([upper_match, lower_match]
+                         if a_upper.get("endpoint") == "start"
+                         else [lower_match, upper_match])
+    elif upper_match:
+        point_matches = [upper_match]
+    elif lower_match:
+        point_matches = [lower_match]
+    else:
+        point_matches = []
+    return {
+        "stitch_id": stitch_id,
+        "type": "seam",
+        "relation": relation,
+        "a": a_ids[0] if a_ids else "",
+        "b": b_ids[0] if b_ids else "",
+        "a_edges": list(a_ids),
+        "b_edges": list(b_ids),
+        "a_groups": [f_group["group_id"]],
+        "b_groups": [b_group["group_id"]],
+        "direction": "by_points",
+        "point_matches": point_matches,
+        "b_reversed": _b_reversed(point_matches),
+        "length_tolerance": 0.03,
         "confidence": round(confidence, 2),
         "confidence_source": source,
         "review_status": "needs_review",
@@ -877,6 +1087,42 @@ def _binding_long_stitch(panel: dict[str, Any], side_a_ids: list[str], side_b_id
         "confidence_source": source,
         "review_status": "needs_review",
     }
+
+
+def _split_point_on_chain(panel: dict[str, Any], edge_ids: list[str],
+                          fraction: float) -> list[float] | None:
+    """沿边链按全局弧长比例 fraction（0..1，自链首边起点起算）取插值点坐标 [x, y]。
+
+    用折线真实弧长定位：在 sampled_points 折线上按段弧长比例线性插值，
+    供目检/下游定位用。链无效或比例越界时返回 None。
+    """
+    edges = {e["edge_id"]: e for e in (panel.get("edges") or [])}
+    chain = [edges[eid] for eid in edge_ids if eid in edges]
+    total = sum(e.get("length") or 0.0 for e in chain)
+    if not chain or total <= 0:
+        return None
+    target = max(0.0, min(1.0, fraction)) * total
+    acc = 0.0
+    for e in chain:
+        L = e.get("length") or 0.0
+        pts = e.get("sampled_points") or []
+        if L <= 0 or len(pts) < 2:
+            continue
+        if acc + L >= target - 1e-9:
+            local = max(0.0, min(1.0, (target - acc) / L))
+            run = 0.0
+            for j in range(1, len(pts)):
+                seg = ((pts[j][0] - pts[j - 1][0]) ** 2 + (pts[j][1] - pts[j - 1][1]) ** 2) ** 0.5
+                if seg <= 0:
+                    continue
+                if run + seg >= local * L - 1e-9 or j == len(pts) - 1:
+                    t = max(0.0, min(1.0, (local * L - run) / seg))
+                    p0, p1 = pts[j - 1], pts[j]
+                    return [round(p0[0] + (p1[0] - p0[0]) * t, 3),
+                            round(p0[1] + (p1[1] - p0[1]) * t, 3)]
+                run += seg
+        acc += L
+    return None
 
 
 def _binding_neckline_stitch(stitch_id: str, binding: dict[str, Any], binding_group_id: str,
@@ -933,6 +1179,27 @@ def _binding_neckline_stitch(stitch_id: str, binding: dict[str, Any], binding_gr
         if _group["group_id"] not in b_groups:
             b_groups.append(_group["group_id"])
 
+    # 滚边条分割点（a_split）：按前/后领口实际弧长比例，把滚边条长边（a 侧链）
+    # 切成两段——自链起点起算的 [0, fraction] 精确对应前片领口、
+    # (fraction, 1] 精确对应后片领口。仅当前后领口都存在且弧长可算时落盘，
+    # 否则省略该字段（保持向后兼容，不影响非滚边条缝合）。
+    a_split: dict[str, Any] | None = None
+    if front is not None and back is not None:
+        front_arc = _group_length(front[1]["member_edge_ids"], front[0]["edges"])
+        back_arc = _group_length(back[1]["member_edge_ids"], back[0]["edges"])
+        total_arc = front_arc + back_arc
+        if total_arc > 0:
+            fraction = front_arc / total_arc
+            a_split = {
+                "edge_id": a_ids[0] if a_ids else "",
+                "fraction": round(fraction, 6),
+                "point": _split_point_on_chain(binding, a_ids, fraction),
+                "front_arc": round(front_arc, 3),
+                "back_arc": round(back_arc, 3),
+                "front_group": front[1]["group_id"],
+                "back_group": back[1]["group_id"],
+            }
+
     return {
         "stitch_id": stitch_id,
         "type": "binding",
@@ -945,6 +1212,7 @@ def _binding_neckline_stitch(stitch_id: str, binding: dict[str, Any], binding_gr
         "b_groups": b_groups,
         "direction": "by_points",
         "point_matches": arrow,
+        **({"a_split": a_split} if a_split else {}),
         "length_tolerance": 0.05,
         "confidence": round(confidence, 2),
         "confidence_source": source,
@@ -995,8 +1263,12 @@ def match_seams(panels: list[dict[str, Any]]) -> list[dict[str, Any]]:
         used_groups.update(stitch["a_groups"])
         used_groups.update(stitch["b_groups"])
 
-    # 1) 前后片：肩缝 + 侧缝（注意裁片方向与实际穿着方向的对应关系：
-    #    后片左侧 ↔ 前片右侧，后片右侧 ↔ 前片左侧，两侧合成同一侧缝/肩缝圈）
+    # 1) 前后片：肩缝 + 侧缝
+    #    项目约定：裁片按镜像摆放（2D 纸样前后片并排展开，与袖山配对一致——
+    #    一个袖窿圈 = 前片左侧 + 后片右侧），故肩缝/侧缝均取交叉配对：
+    #    前右 ↔ 后左、前左 ↔ 后右，与袖窿圈一致，避免 X 交叉。
+    #    （旧实现用 _pick_side_pairs 几何判据做侧别选择，其在镜像摆放下判据
+    #    恰好反转，恒返回同侧配对，导致肩缝方向与袖窿圈矛盾，已改为固定交叉。）
     fronts = [p for p in panels if p["role"] in FRONT_ROLES]
     backs = [p for p in panels if p["role"] in BACK_ROLES]
     for front in fronts:
@@ -1009,30 +1281,29 @@ def match_seams(panels: list[dict[str, Any]]) -> list[dict[str, Any]]:
             f_sh_r = [g for g in f["shoulder"] if group_midpoint(g, front["edges"])[0] >= f_cx]
             b_sh_l = [g for g in b["shoulder"] if group_midpoint(g, back["edges"])[0] < b_cx]
             b_sh_r = [g for g in b["shoulder"] if group_midpoint(g, back["edges"])[0] >= b_cx]
-            for a, bb in _greedy_faces(f_sh_r, b_sh_l):
-                add(_make_stitch("", "front_shoulder_to_back_shoulder",
-                                 [(front, [a["group_id"]])], [(back, [bb["group_id"]])],
-                                 0.7, "rule_inferred"))
-            for a, bb in _greedy_faces(f_sh_l, b_sh_r):
-                add(_make_stitch("", "front_shoulder_to_back_shoulder",
-                                 [(front, [a["group_id"]])], [(back, [bb["group_id"]])],
-                                 0.7, "rule_inferred"))
+            # 肩缝：固定交叉配对（前右↔后左、前左↔后右），与期望 golden 一致
+            for a_list, b_list in ((f_sh_r, b_sh_l), (f_sh_l, b_sh_r)):
+                for a, bb in _greedy_faces(a_list, b_list):
+                    add(_shoulder_stitch(front, a, back, bb,
+                                         "front_shoulder_to_back_shoulder",
+                                         0.7, "rule_inferred"))
             f_si_l = [g for g in f["side"] if group_midpoint(g, front["edges"])[0] < f_cx]
             f_si_r = [g for g in f["side"] if group_midpoint(g, front["edges"])[0] >= f_cx]
             b_si_l = [g for g in b["side"] if group_midpoint(g, back["edges"])[0] < b_cx]
             b_si_r = [g for g in b["side"] if group_midpoint(g, back["edges"])[0] >= b_cx]
-            for a, bb in _greedy_faces(f_si_r, b_si_l):
-                add(_make_stitch("", "front_side_to_back_side",
-                                 [(front, [a["group_id"]])], [(back, [bb["group_id"]])],
-                                 0.7, "rule_inferred"))
-            for a, bb in _greedy_faces(f_si_l, b_si_r):
-                add(_make_stitch("", "front_side_to_back_side",
-                                 [(front, [a["group_id"]])], [(back, [bb["group_id"]])],
-                                 0.7, "rule_inferred"))
+            # 侧缝：固定交叉配对（前右↔后左、前左↔后右），与肩缝/袖窿圈约定一致，
+            # 与期望 golden 一致（旧 _pick_side_pairs 几何判据在镜像摆放下恒错配为同侧）。
+            for a_list, b_list in ((f_si_r, b_si_l), (f_si_l, b_si_r)):
+                for a, bb in _greedy_faces(a_list, b_list):
+                    add(_side_stitch(front, a, back, bb,
+                                     "front_side_to_back_side",
+                                     0.7, "rule_inferred"))
 
     # 2) 袖：袖底缝（同片内）+ 袖山入袖窿
     #    袖山沿对称轴分为左右两半：左半 ↔ 前片左侧袖窿，右半 ↔ 后片右侧袖窿
     #    （同一袖窿圈由前片左侧 + 后片右侧的肩点至腋下线条构成）
+    #    端点点对应按解剖学关键点同向对齐（见 _cap_half_stitch）：袖山最高点 ↔
+    #    袖窿上端（肩缝线与袖窿的交点）、袖山最低点 ↔ 袖窿下端（侧缝线-腋下）。
     front_armholes: list[tuple[dict[str, Any], dict[str, Any]]] = []
     back_armholes: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for p in panels:

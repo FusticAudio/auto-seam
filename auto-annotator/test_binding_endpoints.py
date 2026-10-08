@@ -193,11 +193,66 @@ def test_binding_neckline_stitch_four_matches():
     check("a.R ↔ 后片领口 R", pm[3]["a"] == a_last and pm[3]["b"] == b_last)
 
 
+def _spline_edge(eid, sp, ep, length, pts):
+    """带弧长与采样点的边（供分割点坐标验证）。"""
+    return {
+        "edge_id": eid,
+        "start_point": list(sp),
+        "end_point": list(ep),
+        "length": length,
+        "sampled_points": [list(p) for p in pts],
+        "role": "seam_edge",
+    }
+
+
+def test_binding_neckline_split_point():
+    print("== 滚边条分割点 a_split：按前后领口弧长比例切分 ==")
+    # 滚边条长边：水平从左到右，总长 80（采样点两段各 40）
+    binding = {
+        "panel_id": "bind",
+        "bbox": {"min_x": 0.0, "max_x": 80.0, "min_y": 85.0, "max_y": 90.0},
+        "edges": [_spline_edge("bind.long", [0.0, 90.0], [80.0, 90.0], 80.0,
+                               [[0.0, 90.0], [40.0, 90.0], [80.0, 90.0]])],
+        "edge_groups": [{"group_id": "bind.g", "member_edge_ids": ["bind.long"]}],
+    }
+    # 前片领口弧长 30、后片领口弧长 50 → 分割比例 30/80 = 0.375
+    front = _neck_panel("front", [0.0, 200.0], [0.0, 80.0], [30.0, 80.0], "front.neck")
+    back = _neck_panel("back", [300.0, 500.0], [0.0, 40.0], [50.0, 40.0], "back.neck")
+    front["edges"][0]["length"] = 30.0
+    front["edges"][0]["sampled_points"] = [[0.0, 80.0], [15.0, 80.0], [30.0, 80.0]]
+    back["edges"][0]["length"] = 50.0
+    back["edges"][0]["sampled_points"] = [[0.0, 40.0], [25.0, 40.0], [50.0, 40.0]]
+
+    s = _binding_neckline_stitch(
+        "", binding, "bind.g",
+        [(front, front["edge_groups"][0]), (back, back["edge_groups"][0])],
+        0.55, "test")
+    asp = s.get("a_split")
+    check("a_split 已落盘", asp is not None)
+    check("edge_id = 滚边条长边", asp is not None and asp.get("edge_id") == "bind.long")
+    check("fraction = 前领口弧长占比 30/80", asp is not None and abs(asp["fraction"] - 0.375) < 1e-6)
+    check("front_arc=30 / back_arc=50", asp is not None and asp["front_arc"] == 30.0 and asp["back_arc"] == 50.0)
+    check("front_group / back_group 正确",
+          asp is not None and asp["front_group"] == "front.neck" and asp["back_group"] == "back.neck")
+    check("分割点坐标 = 弧长 30 处 (30,90)",
+          asp is not None and asp["point"] is not None
+          and abs(asp["point"][0] - 30.0) < 1e-6 and abs(asp["point"][1] - 90.0) < 1e-6)
+    # 不破坏原四点对应
+    pm = s.get("point_matches") or []
+    check("仍保持 4 组点对应", len(pm) == 4)
+
+    # 向后兼容：仅前领口（无后领口）时不落 a_split
+    s2 = _binding_neckline_stitch(
+        "", binding, "bind.g", [(front, front["edge_groups"][0])], 0.55, "test")
+    check("无后领口时不落 a_split", "a_split" not in s2)
+
+
 if __name__ == "__main__":
     test_chain_single_member_yields_two_endpoints()
     test_make_stitch_cross_single_member()
     test_make_stitch_cross_multi_member()
     test_binding_long_stitch_parallel()
     test_binding_neckline_stitch_four_matches()
+    test_binding_neckline_split_point()
     print(f"\n==== 通过 {PASS} / 失败 {FAIL} ====")
     sys.exit(1 if FAIL else 0)

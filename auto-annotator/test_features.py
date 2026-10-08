@@ -16,6 +16,7 @@ from app.core.semantics import (  # noqa: E402
     validate_sleeve_seam_pair, classify_panel_groups,
     mark_spurious_panels_unknown, _geom_cross_family_banned,
     _chain_endpoints, _canonical_point,
+    _chain_endpoint_refs_by_y, _cap_half_stitch, _b_reversed,
 )
 
 PASS = 0
@@ -243,6 +244,88 @@ def main():
     # 空列表 / 缺边回退：不崩溃
     check("空组 → 空 refs", _chain_endpoints(panel_h, []) == ({}, {}))
     check("空边缘 → 空 refs", _chain_endpoints({"edges": [], "edge_groups": []}, ["x"]) == ({}, {}))
+
+    print("== Feature5：袖山-袖窿解剖学同向对齐（单元）==")
+    up_lu = {
+        "u.e1": {"edge_id": "u.e1", "start_point": [100.0, 150.0], "end_point": [120.0, 250.0]},
+        "u.e2": {"edge_id": "u.e2", "start_point": [120.0, 250.0], "end_point": [140.0, 400.0]},
+    }
+    up_upper, up_lower = _chain_endpoint_refs_by_y(["u.e1", "u.e2"], up_lu)
+    check("腋下→顶点链：upper=链尾(更高y端)", up_upper == {"edge_id": "u.e2", "endpoint": "end"})
+    check("腋下→顶点链：lower=链首(更低y端)", up_lower == {"edge_id": "u.e1", "endpoint": "start"})
+    down_lu = {
+        "d.e1": {"edge_id": "d.e1", "start_point": [0.0, 400.0], "end_point": [20.0, 300.0]},
+        "d.e2": {"edge_id": "d.e2", "start_point": [20.0, 300.0], "end_point": [40.0, 150.0]},
+    }
+    down_upper, down_lower = _chain_endpoint_refs_by_y(["d.e1", "d.e2"], down_lu)
+    check("顶点→腋下链：upper=链首(更高y端)", down_upper == {"edge_id": "d.e1", "endpoint": "start"})
+    check("顶点→腋下链：lower=链尾(更低y端)", down_lower == {"edge_id": "d.e2", "endpoint": "end"})
+    check("空链 → 空 refs", _chain_endpoint_refs_by_y([], {}) == ({}, {}))
+    # 合成 袖山半弧(腋下→袖山顶) + 前身袖窿(腋下→肩缝交点)
+    cap_panel = _mk_panel("slv", "sleeve",
+                          [("slv.c1", (200.0, 150.0), (230.0, 260.0), "slv.cap"),
+                           ("slv.c2", (230.0, 260.0), (255.0, 340.0), "slv.cap"),
+                           ("slv.c3", (255.0, 340.0), (270.0, 400.0), "slv.cap")],
+                          {"slv.cap": ["slv.c1", "slv.c2", "slv.c3"]},
+                          piece_name="袖")
+    bod_panel = _mk_panel("frt", "front_bodice",
+                          [("frt.a1", (500.0, 180.0), (520.0, 300.0), "frt.ah"),
+                           ("frt.a2", (520.0, 300.0), (540.0, 450.0), "frt.ah")],
+                          {"frt.ah": ["frt.a1", "frt.a2"]},
+                          piece_name="前片")
+    cap_g = next(g for g in cap_panel["edge_groups"] if g["group_id"] == "slv.cap")
+    ah_g = next(g for g in bod_panel["edge_groups"] if g["group_id"] == "frt.ah")
+    st = _cap_half_stitch(cap_panel, cap_g, cap_g["member_edge_ids"], bod_panel, ah_g,
+                          "sleeve_cap_front_to_armhole", 0.6, "rule_inferred")
+    pm = st["point_matches"]
+    check("恰好 2 组点对应", len(pm) == 2)
+    check("袖山最高点↔袖窿上端(肩缝交点, 同向)",
+          pm[0]["a"] == {"edge_id": "slv.c3", "endpoint": "end"}
+          and pm[0]["b"] == {"edge_id": "frt.a2", "endpoint": "end"})
+    check("袖山最低点↔袖窿下端(腋下, 同向)",
+          pm[1]["a"] == {"edge_id": "slv.c1", "endpoint": "start"}
+          and pm[1]["b"] == {"edge_id": "frt.a1", "endpoint": "start"})
+    check("b_reversed 落盘且与 _b_reversed 一致", st.get("b_reversed") == _b_reversed(pm))
+    check("两侧同向走 → b_reversed=False", st.get("b_reversed") is False)
+
+    print("== Feature6：真实样本集成（42下摆褶短袖 袖山-袖窿对齐）==")
+    from app.core.service import annotate_dxf_file  # noqa: PLC0415
+    dxf = Path(r"d:\project\0824cloth\0901dxf\缝合关系文件\4 2下摆褶短袖.review-package\42下摆褶短袖.reviewed.dxf")
+    if not dxf.exists():
+        check("集成样本 DXF 存在", False)
+    else:
+        check("集成样本 DXF 存在", True)
+        res = annotate_dxf_file(dxf)
+        edges = {}
+        for p in res["garment"]["panels"]:
+            for e in p["edges"]:
+                edges[e["edge_id"]] = e
+        cap_sts = [s for s in res["seam"]["stitches"] if "sleeve_cap" in s.get("relation", "")]
+        check("生成 2 条袖山-袖窿规则缝", len(cap_sts) == 2)
+        ok_align = True
+        for s in cap_sts:
+            pm = s.get("point_matches") or []
+            if len(pm) != 2:
+                ok_align = False
+                continue
+
+            def _y(ref):
+                e = edges.get(ref["edge_id"])
+                if not e:
+                    return None
+                return (e["start_point"] if ref["endpoint"] == "start" else e["end_point"])[1]
+
+            ya = [_y(m["a"]) for m in pm]
+            yb = [_y(m["b"]) for m in pm]
+            if ya[0] is None or yb[0] is None or ya[1] is None or yb[1] is None:
+                ok_align = False
+                continue
+            if ya[0] < ya[1] or yb[0] < yb[1]:
+                # 每组第一项应为更上端（y 更大）：最高点↔肩端、最低点↔腋下
+                ok_align = False
+            if s.get("b_reversed") != _b_reversed(pm):
+                ok_align = False
+        check("袖山缝 point_matches 同向对齐(高↔高、低↔低)且 b_reversed 一致", ok_align)
 
     print(f"\n==== 结果: {PASS} 通过, {FAIL} 失败 ====")
     sys.exit(0 if FAIL == 0 else 1)
